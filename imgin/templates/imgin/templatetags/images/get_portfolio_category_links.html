@@ -1,0 +1,7 @@
+<ul class="series-submenu{% if category != active_category %} hidden{% endif %}" data-pfid="{{ category }}">
+{% for series in image_series %}
+    <li>
+        <a href="{{ series.get_absolute_url }}">// {{ series.name }}</a>
+    </li>
+{% endfor %}
+</ul>

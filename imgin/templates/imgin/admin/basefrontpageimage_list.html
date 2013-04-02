@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %}
+{% load static from staticfiles %}
+{% load crispy_forms_tags %}
+{% load url from future %}
+{% block css_extra %}
+{% endblock css_extra %}
+{% block extra_js %}
+{% endblock extra_js %}
+{% block content %}
+    <style>
+    #sortable, #imagepool { list-style-type: none; margin: 0; padding: 0; width: 750px; }
+    #sortable li, #imagepool li { margin: 3px 3px 3px 0; padding: 1px; padding-bottom: 8px; float: left; width: 100px; height: 90px; font-size: 4em; text-align: center; }
+    </style>
+    <h3>Sortér forsiden - {{ image_series.name }}</h3>
+
+    <p>Dra bildene i rekkefølgen du vil de skal vises. Dobbeltklikk for å fjerne et bilde fra forsiden.</p>
+    <hr>
+
+    <div class="clearfix">
+        <ul id="sortable">
+        {% for image in frontpage_images %}
+        <li id="image-{{ image.image.pk }}" data-frontpageid="{{ image.pk }}" data-id="{{ image.image.pk }}">
+            <img src="{{ image.image.url_t }}" />
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div style="margin-top: 10px;">
+        <button class="btn btn-success" id="store-order" data-loading-text="Lagrer..">Lagre rekkefølge</button>
+    </div>
+
+    <hr>
+    <h4>Klikk på bilder du vil ha på forsiden</h4>
+    <div class="clearfix">
+        <ul id="imagepool">
+            {% for image in images %}
+            <li id="image-{{ image.pk }}" data-id="{{ image.pk }}">
+                <img src="{{ image.url_t }}" />
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script>
+        $(function() {
+            $.ajaxSetup({
+                 beforeSend: function(xhr, settings) {
+                     function getCookie(name) {
+                         var cookieValue = null;
+                         if (document.cookie && document.cookie != '') {
+                             var cookies = document.cookie.split(';');
+                             for (var i = 0; i < cookies.length; i++) {
+                                 var cookie = jQuery.trim(cookies[i]);
+                                 // Does this cookie string begin with the name we want?
+                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                 break;
+                             }
+                         }
+                     }
+                     return cookieValue;
+                     }
+                     if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                         // Only send the token to relative URLs i.e. locally.
+                         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                     }
+                 }
+            });
+
+            $("#sortable").sortable({
+                change: function( event, ui ) {
+                    $("#store-order").removeClass('btn-success').addClass('btn-warning');
+                }
+            });
+            $("#sortable").disableSelection();
+            $(document).on("dblclick", "#sortable li img", function(e) {
+                f_id = $(this).parent().attr('data-frontpageid');
+                $.ajax({
+                    type: 'POST',
+                    url: 'slett/',
+                    data: 'id=' + f_id,
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            $('li[data-frontpageid='+data.id+']').fadeOut(900, function () {
+                                $(this).remove();
+                            });
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+                event.preventDefault();
+            });
+            $("#store-order").click(function() {
+                that = this;
+                $(this).button('loading');
+                ids = $("#sortable").sortable('toArray', {attribute: 'data-id'});
+                $.ajax({
+                    type: 'POST',
+                    url: 'sorter/',
+                    data: 'ids=' + ids.join(','),
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            $(that).button('reset');
+                            $(that).addClass('btn-success');
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+                event.preventDefault();
+            });
+            $(document).on("click", "#imagepool li img", function() {
+            //$('#imagepool li img').click(function() {
+                var li = $(this).parent();
+                li.css('opacity', 0.2)
+                $('#sortable').append(li);
+                $.ajax({
+                    type: 'POST',
+                    url: 'legg-til/',
+                    data: 'id=' + li.attr('data-id'),
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            $(data.id).attr('data-frontpageid', data.f_id);
+                            $(data.id).css('opacity', 1.0);
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+                event.preventDefault();
+            });
+        });
+    </script>
+
+    <div style="clear:left;">
+        <hr>
+        <a class="btn btn-primary" href="{% url 'admin:portfolio:series-list' %}">
+            Tilbake til bildeoversikten
+        </a>
+    </div>
+{% endblock content %}

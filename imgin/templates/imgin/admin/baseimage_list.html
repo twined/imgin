@@ -1,0 +1,79 @@
+{% extends "admin/base.html" %}
+{% load thumbnail %}
+{% load url from future %}
+{% load static from staticfiles %}
+{% block extra_js %}
+  <script type="text/javascript" src="{% static 'js/admin/images.js' %}" charset="utf-8"></script>
+{% endblock extra_js %}
+{% block content %}
+  <h3>{{ model.meta.verbose_name_plural }} – oversikt</h3>
+  <p>
+    Her finner du en oversikt over alle bildene som har blitt lastet
+    opp. Dobbeltklikk på et bilde for å slette.
+  </p>
+
+  <hr>
+
+    {% for image in images %}
+      <img class="image-deleteable" data-id="{{ image.pk }}" id="image-{{ image.pk }}" src="{{ image.url_t }}" style="padding-bottom: 3px;" />
+    {% endfor %}
+
+    <hr>
+    <a class="btn btn-primary" href="{{ model.get_create_url }}">
+      Last opp bilder
+    </a>
+
+    <script type="text/javascript">
+      $.ajaxSetup({
+           beforeSend: function(xhr, settings) {
+               function getCookie(name) {
+                   var cookieValue = null;
+                   if (document.cookie && document.cookie != '') {
+                       var cookies = document.cookie.split(';');
+                       for (var i = 0; i < cookies.length; i++) {
+                           var cookie = jQuery.trim(cookies[i]);
+                           // Does this cookie string begin with the name we want?
+                       if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                           break;
+                       }
+                   }
+               }
+               return cookieValue;
+               }
+               if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                   // Only send the token to relative URLs i.e. locally.
+                   xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+               }
+           }
+      });
+
+      $(document).on("dblclick", ".image-deleteable", function(e) {
+          if (!confirm('Er du sikker på at du vil slette dette bildet?')) {
+              e.preventDefault();
+              return false;
+          }
+          f_id = $(this).attr('data-id');
+
+          $.ajax({
+              type: 'POST',
+              url: 'slett/',
+              data: 'id=' + f_id,
+              csrfmiddlewaretoken: '{{ csrf_token }}',
+              success: function(data) {
+                  if (data.status == 200) {
+                      console.log(data);
+                      $('img[data-id='+data.id+']').fadeOut(900, function () {
+                          $(this).remove();
+                      });
+                  }
+                  else {
+                      alert(data.error_msg);
+                  }
+              },
+              dataType: 'json'
+          });
+          e.preventDefault();
+      });
+    </script>
+{% endblock content %}

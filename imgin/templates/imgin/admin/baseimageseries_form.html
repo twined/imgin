@@ -1,0 +1,63 @@
+{% extends "admin/base.html" %}
+{% load static from staticfiles %}
+{% load crispy_forms_tags %}
+{% load url from future %}
+{% block css_extra %}
+    <link href="{% static 'css/fileuploader.css' %}" rel="stylesheet" type="text/css">
+{% endblock css_extra %}
+{% block extra_js %}
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
+{% endblock extra_js %}
+{% block content %}
+    <h3>Ny bildeserie</h3>
+    {% crispy form %}
+
+    {% if form.errors %}
+    <div id="form-error">
+        <p>Feil i skjema.<br />Vennligst send inn igjen etter følgende feil er rettet:</p>
+        <ul>
+        {% for field in form %}
+        {% if field.errors %}<li>{{ field.label }} - {{ field.errors|striptags }}</li>{% endif %}
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+
+    <script>
+        function getCookie(c_name) {
+            if (document.cookie.length > 0) {
+                c_start = document.cookie.indexOf(c_name + "=");
+                if (c_start != -1) {
+                    c_start = c_start + c_name.length + 1;
+                    c_end = document.cookie.indexOf(";", c_start);
+                    if (c_end == -1) c_end = document.cookie.length;
+                    return unescape(document.cookie.substring(c_start,c_end));
+                }
+            }
+            return "";
+         }
+        $(document).ready(function() {
+            $('#id_name').slugIt({
+                output: '#id_slug',
+                map: { 'æ': 'ae', 'ø': 'oe', 'å': 'aa' },
+                space: '-'
+            });
+
+            // bind the imgs
+            $(document).on("click", ".upimg", function (event) {
+                // strip out "image"
+                id = $(this).attr('id').replace("image-", "");
+                url = $(this).attr('src');
+                up_show_form(id, url);
+                event.preventDefault();
+            });
+
+            $(".fileprogress").knob();
+        });
+        // in your app create uploader as soon as the DOM is ready
+        // don't wait for the window to load
+        window.onload = createUploader;
+    </script>
+{% endblock content %}

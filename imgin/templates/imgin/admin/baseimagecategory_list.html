@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+{% load thumbnail %}
+{% load url from future %}
+{% load static from staticfiles %}
+{% block content %}
+<h3>{{ model.meta.verbose_name_plural }} – oversikt</h3>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Navn</th>
+            <th>Endret</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for category in image_categories %}
+            <tr>
+                <td>{{ category.pk }}</td>
+                <td>{{ category.name }}</td>
+                <td>{{ category.updated|date:"d/m/y" }}</td>
+                <td><a title="Endre" href="{{ category.get_update_url }}"><i class="icon-edit icon-large"></i></a></td>
+                <td><a title="Slett" href="{{ category.get_delete_url }}"><i class="icon-trash icon-large"></i></a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a class="btn btn-success" href="{{ model.get_create_url }}">Opprett ny kategori</a>
+{% endblock content %}

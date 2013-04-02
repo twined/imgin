@@ -1,0 +1,2 @@
+include README.md
+recursive-include oculus *.py *.html *.js *.gif *.css

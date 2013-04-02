@@ -1,0 +1,116 @@
+{% extends "admin/base.html" %}
+{% load thumbnail %}
+{% load url from future %}
+{% load static from staticfiles %}
+{% block extra_js %}
+  <script type="text/javascript" src="{% static 'js/admin/images.js' %}" charset="utf-8"></script>
+{% endblock extra_js %}
+{% block content %}
+  <h3>{{ model.meta.verbose_name_plural }} – oversikt</h3>
+  <p>
+    Her finner du en oversikt over alle bildene som har blitt lastet
+    opp.
+  </p>
+
+  <hr>
+
+  <ul class="nav nav-tabs spaced">
+    {% for category in image_categories %}
+
+      <li{% if forloop.first %} class="active"{% endif %}>
+        <a href="#{{ category.slug }}" data-toggle="tab">{{ category.name }}</a>
+
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="tab-content">
+  {% for category in image_categories %}
+      <div class="tab-pane{% if forloop.first %} active{% endif %}" id="{{ category.slug }}">
+        <a class="btn btn-success" href="{{ category.get_sortseries_url }}">Endre rekkefølge på serier i {{ category.name }}</a>
+        <hr>
+        {% for imageserie in category.imageseries_set.all %}
+          <div class="imageserie well spaced" id="series-{{ imageserie.pk }}">
+            <h4>{{ imageserie.category.name }} – {{ imageserie.name }}</h4>
+            {% for image in imageserie.related_images.all %}
+              <img id="image-{{ image.pk }}" src="{{ image.url_t }}" style="padding-bottom: 3px;" />
+            {% endfor %}
+            <hr>
+            <a href="{{ imageserie.get_addimages_url }}" id="series-add" class="btn" data-seriesid="{{ imageserie.pk }}">
+              Last opp flere bilder til denne serien
+            </a>
+            <a href="{{ imageserie.get_update_url }}" id="series-edit" class="btn" data-seriesid="{{ imageserie.pk }}">
+              Endre bildeserie
+            </a>
+            <button id="series-delete" class="btn btn-danger" data-seriesid="{{ imageserie.pk }}">Slett bildeserie</button>
+          </div>
+          <hr>
+        {% empty %}
+          Ingen bildeserier i denne kategorien.
+        {% endfor %}
+
+      </div>
+  {% endfor %}
+  </div>
+
+
+    <hr>
+    <a class="btn btn-primary" href="{{ model.get_create_url }}">
+      Ny bildeserie
+    </a>
+
+  </div>
+  <script type="text/javascript">
+    function seriesDeleteCallback(data) {
+        console.log(data);
+        if (data.status == 200) {
+            $(data.id).fadeOut('slow', function() {
+                console.log(this);
+                //this.remove();
+            });
+        } else {
+            alert('Feil ved sletting av bilde.');
+        }
+    }
+    $.ajaxSetup({
+         beforeSend: function(xhr, settings) {
+             function getCookie(name) {
+                 var cookieValue = null;
+                 if (document.cookie && document.cookie != '') {
+                     var cookies = document.cookie.split(';');
+                     for (var i = 0; i < cookies.length; i++) {
+                         var cookie = jQuery.trim(cookies[i]);
+                         // Does this cookie string begin with the name we want?
+                     if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                         break;
+                     }
+                 }
+             }
+             return cookieValue;
+             }
+             if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                 // Only send the token to relative URLs i.e. locally.
+                 xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+             }
+         }
+    });
+    $(document).on("click", "#series-delete", function (event) {
+        series_id = $(this).attr('data-seriesid');
+        console.log(this);
+        if (confirm('Er du sikker på at du vil slette denne bildeserien?')) {
+            $.ajax({
+                type: 'POST',
+                url: 'slett/',
+                data: 'pk=' + series_id,
+                success: function(data) {
+                    seriesDeleteCallback(data);
+                },
+                dataType: 'json'
+            });
+        }
+        $('#imgmodal').hide();
+        event.preventDefault();
+    });
+  </script>
+{% endblock content %}

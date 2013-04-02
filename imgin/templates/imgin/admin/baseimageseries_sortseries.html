@@ -1,0 +1,105 @@
+{% extends "admin/base.html" %}
+{% load static from staticfiles %}
+{% load crispy_forms_tags %}
+{% load url from future %}
+{% block css_extra %}
+{% endblock css_extra %}
+{% block extra_js %}
+{% endblock extra_js %}
+{% block content %}
+    <style>
+    #sortable {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #sortable li {
+        margin: 3px 3px 3px 0;
+        padding: 5px;
+        float: left;
+        width: 100%;
+        font-size: 22px;
+        border: 1px solid #ccc;
+        background-color: #f3eded;
+        box-sizing: border-box;
+        cursor: move;
+    }
+    </style>
+    <h3>Endre rekkefølge på bildeserier i {{ category.name }}</h3>
+    <hr>
+    <p>Dra titlene på bildeseriene i rekkefølgen du vil de skal vises.</p>
+    <hr>
+
+    <div class="clearfix">
+        <ul id="sortable">
+        {% for image_series in category.imageseries_set.all %}
+        <li id="image-{{ image_series.pk }}" data-id="{{ image_series.pk }}">
+            {{ image_series.created|date:"d/m/y" }} |
+            {{ image_series.name }}
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div style="margin-top: 10px;">
+        <button class="btn btn-success" id="store-order">Lagre rekkefølge</button>
+    </div>
+    <script>
+        $(function() {
+            $("#sortable").sortable({
+                change: function( event, ui ) {
+                    $("#store-order").removeClass('btn-success').addClass('btn-warning');
+                }
+            });
+            $("#sortable").disableSelection();
+
+            $.ajaxSetup({
+                 beforeSend: function(xhr, settings) {
+                     function getCookie(name) {
+                         var cookieValue = null;
+                         if (document.cookie && document.cookie != '') {
+                             var cookies = document.cookie.split(';');
+                             for (var i = 0; i < cookies.length; i++) {
+                                 var cookie = jQuery.trim(cookies[i]);
+                                 // Does this cookie string begin with the name we want?
+                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                 break;
+                             }
+                         }
+                     }
+                     return cookieValue;
+                     }
+                     if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                         // Only send the token to relative URLs i.e. locally.
+                         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                     }
+                 }
+            });
+
+            $("#store-order").click(function() {
+                that = this;
+                $(this).button('loading');
+                ids = $("#sortable").sortable('toArray', {attribute: 'data-id'});
+                $.ajax({
+                    type: 'POST',
+                    url: 'oppdater/',
+                    data: 'ids=' + ids.join(','),
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            $(that).button('reset');
+                            $(that).addClass('btn-success');
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+                event.preventDefault();
+            });
+        });
+    </script>
+
+{% endblock content %}

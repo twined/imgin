@@ -1,0 +1,21 @@
+{% load static from staticfiles %}
+<html>
+<head>
+    <script src="{% static 'js/libs/jquery/jquery.min.js' %}"></script>
+</head>
+<body>
+{% for image in images %}
+    <img src="{{ image.url_t }}" data-target="{{ image.url_l }}" />
+{% endfor %}
+
+    <script type="text/javascript">
+        $('img').click(function(e) {
+            window.opener.CKEDITOR.tools.callFunction(
+                {{ func_num }},
+                $(this).attr('data-target')
+            );
+            window.close();
+        });
+
+    </script>
+</body>

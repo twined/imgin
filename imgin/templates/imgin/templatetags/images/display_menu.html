@@ -1,0 +1,15 @@
+{% load images_tags active %}
+{% load static from staticfiles %}
+{% url 'about' as about_url %}
+{% for category in image_categories %}
+    <li>
+        <a class="portfolio-category" data-pfid="{{ category.slug }}" href="{{ category.get_absolute_url }}">
+            {{ category.name }}
+        </a>
+        {% get_portfolio_category_links category.slug active_category %}
+    </li>
+{% endfor %}
+
+<li>
+    <a href="{{ about_url }}" class="{% active request about_url %}">Info</a>
+</li>

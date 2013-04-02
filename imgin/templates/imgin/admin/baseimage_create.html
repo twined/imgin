@@ -1,0 +1,155 @@
+{% extends "admin/base.html" %}
+{% load static from staticfiles %}
+{% load crispy_forms_tags %}
+{% load url from future %}
+{% block css_extra %}
+    <link href="{% static 'css/fileuploader.css' %}" rel="stylesheet" type="text/css">
+{% endblock css_extra %}
+{% block extra_js %}
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
+{% endblock extra_js %}
+{% block content %}
+    <h3>Last opp bilder</h3>
+    <p>Klikk på knappen under for å velge filene du vil laste opp.</p>
+    <div id="fileuploader" class="clearfix">
+        <noscript>
+            <p>Please enable JavaScript to use file uploader.</p>
+            <!-- or put a simple form for upload here -->
+        </noscript>
+    </div>
+    <div id="fileuploaderbtn">
+        <span id="uploadspan">
+            <button class="btn btn-success btn-large" id="upload">
+                <i class="icon-upload icon-white"></i> Velg bilder
+            </button>
+        </span>
+    </div>
+    <div id="uploaded-images" class="clearfix">
+        <h3>Opplastede bilder</h3>
+        <hr>
+        {% for image in images %}
+            <div class="upthumb">
+                <img id="image-{{ image.pk }}" class="upimg" src="{{ image.url_t }}" />
+            </div>
+        {% endfor %}
+    </div>
+    <hr />
+
+    <script>
+        $.ajaxSetup({
+             beforeSend: function(xhr, settings) {
+                 function getCookie(name) {
+                     var cookieValue = null;
+                     if (document.cookie && document.cookie != '') {
+                         var cookies = document.cookie.split(';');
+                         for (var i = 0; i < cookies.length; i++) {
+                             var cookie = jQuery.trim(cookies[i]);
+                             // Does this cookie string begin with the name we want?
+                         if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                             break;
+                         }
+                     }
+                 }
+                 return cookieValue;
+                 }
+                 if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                     // Only send the token to relative URLs i.e. locally.
+                     xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                 }
+             }
+        });
+        function up_create_image(id, data) {
+            if (data.success) {
+                // make the progress indicator green
+                $('.fileitem[data-id="'+id+'"] .fileprogress').trigger(
+                    'configure', {"fgColor":"#51A351",}
+                );
+                $(".fileitem[data-id='"+id+"'] .filestatus").html(
+                    '<i class="icon-ok-sign"> </i>' + ' Lastet opp OK.'
+                );
+                // make sure we can see the uploaded images container
+                $('#uploaded-images').show();
+                // append the thumb and fade in
+                $('<div class="upthumb"><img id="image-' + data.id + '" class="upimg" src="' + data.thumbnail_url + '" /></div>').hide().appendTo('#uploaded-images').fadeIn();
+            } else {
+                $('.fileitem[data-id="'+id+'"] .fileprogress').trigger('configure', {"fgColor":"#AA0000",});
+                $(".fileitem[data-id='"+id+"'] .filestatus").html('<i class="icon-minus-sign"> </i> ' + data.error);
+            }
+        }
+
+        function addUpload(id, fileName) {
+            console.log(id + ' - ' + fileName);
+            $('#fileuploader').prepend(
+                '<div class="row-fluid fileitem-row">' +
+                    '<div class="fileitem span12" data-id="' + id + '">' +
+                        '<input type="text" class="fileprogress" value="0" />' +
+                        '<div class="filename">' + fileName + '</div>' +
+                        '<div class="filesize">' + '</div>' +
+                        '<div class="filestatus">' + '</div>' +
+                    '</div>' +
+                '</div>'
+            );
+            $(".fileitem[data-id='"+id+"'] .fileprogress").knob({
+                'width': 30,
+                'height': 30,
+                'displayInput': false,
+                'skin': 'tron',
+                'thickness': .5
+            });
+
+        }
+
+        function _formatFileName(name){
+            if (name.length > 33){
+                name = name.slice(0, 19) + '...' + name.slice(-13);
+            }
+            return name;
+        }
+
+        function _formatSize (bytes) {
+            var i = -1;
+            do {
+                bytes = bytes / 1024;
+                i++;
+            } while (bytes > 99);
+
+            return Math.max(bytes, 0.1).toFixed(1) + ['kB', 'MB', 'GB', 'TB', 'PB', 'EB'][i];
+        }
+
+        function createUploader() {
+            var uploader = new qq.FileUploaderBasic({
+                button: $('#uploadspan')[0],
+                action: '{{ model.get_upload_url }}',
+                customHeaders : {
+                    "X-CSRFToken" : "{{ csrf_token }}"
+                },
+                maxConnections: 1,
+                onComplete: function(id, fileName, responseJSON) {
+                    console.log(responseJSON);
+                    up_create_image(id, responseJSON);
+                },
+                onProgress: function(id, fileName, loaded, total) {
+                    pct = Math.ceil(loaded / total * 100);
+                    $(".fileitem[data-id='"+id+"'] .fileprogress").val(pct).trigger('change');
+                    $(".fileitem[data-id='"+id+"'] .filesize").text(_formatSize(loaded) + ' / ' + _formatSize(total));
+                    console.log(id);
+                },
+                onSubmit: function(id, fileName) {
+                    addUpload(id, fileName);
+                },
+                onError: function(id, fileName, xhr) {
+                    $(".fileitem[data-id='"+id+"'] .filestatus").text(xhr.error);
+                },
+                debug: true,
+            });
+        }
+        $(document).ready(function() {
+            $(".fileprogress").knob();
+        });
+        // in your app create uploader as soon as the DOM is ready
+        // don't wait for the window to load
+        window.onload = createUploader;
+    </script>
+{% endblock content %}
