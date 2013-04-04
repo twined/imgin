@@ -151,6 +151,31 @@ class AJAXBaseImageDeleteView(BaseView):
         }), mimetype="application/json")
 
 
+class AJAXBaseImageDeleteMultipleView(BaseView):
+    """
+    AJAX: Delete image by `ids`
+    returns a dict of `status` and `ids` of deleted image
+    """
+    model = BaseImage
+
+    def post(self, request, *args, **kwargs):
+        if not request.POST.get('ids'):
+            return json.dumps({
+                'status': 500,
+                'error_msg': 'No IDs supplied!'
+            })
+
+        ids = request.POST['ids'].split(',')
+        for image_id in ids:
+            img = self.model.objects.get(pk=image_id)
+            img.delete()
+
+        return HttpResponse(json.dumps({
+            'status': 200,
+            'ids': ids
+        }), mimetype="application/json")
+
+
 class AJAXBaseImageListView(BaseView):
     """
     AJAX: Returns a JSON object of all images with thumb and large size urls
