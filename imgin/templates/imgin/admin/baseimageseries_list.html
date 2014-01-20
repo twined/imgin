@@ -6,53 +6,55 @@
   <script type="text/javascript" src="{% static 'js/admin/images.js' %}" charset="utf-8"></script>
 {% endblock extra_js %}
 {% block content %}
-  <h3>{{ model.meta.verbose_name_plural }} – oversikt</h3>
+  <h3 class="section">{{ model.meta.verbose_name_plural }} – oversikt</h3>
   <p>
     Her finner du en oversikt over alle bildene som har blitt lastet
     opp.
   </p>
 
   <hr>
-
-  <ul class="nav nav-tabs spaced">
-    {% for category in image_categories %}
-
-      <li{% if forloop.first %} class="active"{% endif %}>
-        <a href="#{{ category.slug }}" data-toggle="tab">{{ category.name }}</a>
-
-      </li>
-    {% endfor %}
-  </ul>
-
-  <div class="tab-content">
-  {% for category in image_categories %}
-      <div class="tab-pane{% if forloop.first %} active{% endif %}" id="{{ category.slug }}">
-        <a class="btn btn-success" href="{{ category.get_sortseries_url }}">Endre rekkefølge på serier i {{ category.name }}</a>
-        <hr>
-        {% for imageserie in category.imageseries_set.all %}
-          <div class="imageserie well spaced" id="series-{{ imageserie.pk }}">
-            <h4>{{ imageserie.category.name }} – {{ imageserie.name }}</h4>
-            {% for image in imageserie.related_images.all %}
-              <img id="image-{{ image.pk }}" src="{{ image.url_t }}" style="padding-bottom: 3px;" />
-            {% endfor %}
-            <hr>
-            <a href="{{ imageserie.get_addimages_url }}" id="series-add" class="btn" data-seriesid="{{ imageserie.pk }}">
-              Last opp flere bilder til denne serien
-            </a>
-            <a href="{{ imageserie.get_update_url }}" id="series-edit" class="btn" data-seriesid="{{ imageserie.pk }}">
-              Endre bildeserie
-            </a>
-            <button id="series-delete" class="btn btn-danger" data-seriesid="{{ imageserie.pk }}">Slett bildeserie</button>
-          </div>
-          <hr>
-        {% empty %}
-          Ingen bildeserier i denne kategorien.
+  <section class="panel panel-default">
+    <header class="panel-heading text-right bg-light">
+      <ul class="nav nav-tabs spaced">
+        {% for category in image_categories %}
+          <li{% if forloop.first %} class="active"{% endif %}>
+            <a href="#{{ category.slug }}" data-toggle="tab">{{ category.name|upper }}</a>
+          </li>
         {% endfor %}
+      </ul>
+    </header>
+    <div class="panel-body">
+      <div class="tab-content">
+      {% for category in image_categories %}
+          <div class="tab-pane{% if forloop.first %} active{% endif %}" id="{{ category.slug }}">
+            <hr>
+            <a class="btn btn-default" href="{{ category.get_sortseries_url }}">Endre rekkefølge på serier i {{ category.name|upper }}</a>
+            <hr>
+            {% for imageserie in category.imageseries_set.all %}
+              <div class="imageserie well spaced" id="series-{{ imageserie.pk }}">
+                <h4 class="m-b-md">{{ imageserie.category.name }} | {{ imageserie.name }}</h4>
+                {% for image in imageserie.related_images.all %}
+                  <img id="image-{{ image.pk }}" src="{{ image.url_t }}" style="padding-bottom: 3px;" />
+                {% endfor %}
+                <hr>
+                <a href="{{ imageserie.get_addimages_url }}" id="series-add" class="btn btn-default" data-seriesid="{{ imageserie.pk }}">
+                  Last opp flere bilder til denne serien
+                </a>
+                <a href="{{ imageserie.get_update_url }}" id="series-edit" class="btn btn-default" data-seriesid="{{ imageserie.pk }}">
+                  Endre bildeserie
+                </a>
+                <button id="series-delete" class="btn btn-danger" data-seriesid="{{ imageserie.pk }}">Slett bildeserie</button>
+              </div>
+              <hr>
+            {% empty %}
+              Ingen bildeserier i denne kategorien.
+            {% endfor %}
 
+          </div>
+      {% endfor %}
       </div>
-  {% endfor %}
-  </div>
-
+    </div>
+  </section>
 
     <hr>
     <a class="btn btn-primary" href="{{ model.get_create_url }}">

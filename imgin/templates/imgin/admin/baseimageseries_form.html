@@ -7,12 +7,13 @@
 {% endblock css_extra %}
 {% block extra_js %}
     <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.slugit.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.debounce-1.0.5.js' %}" charset="utf-8"></script>
     <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
 {% endblock extra_js %}
 {% block content %}
-    <h3>Ny bildeserie</h3>
+    <h3 class="section">Ny bildeserie</h3>
     {% crispy form %}
-
     {% if form.errors %}
     <div id="form-error">
         <p>Feil i skjema.<br />Vennligst send inn igjen etter følgende feil er rettet:</p>
@@ -44,7 +45,8 @@
                 map: { 'æ': 'ae', 'ø': 'oe', 'å': 'aa', '!': '' },
                 space: '-'
             });
-
+        });
+        /*
             // bind the imgs
             $(document).on("click", ".upimg", function (event) {
                 // strip out "image"
@@ -56,8 +58,9 @@
 
             $(".fileprogress").knob();
         });
+        */
         // in your app create uploader as soon as the DOM is ready
         // don't wait for the window to load
-        window.onload = createUploader;
+        //window.onload = createUploader;
     </script>
 {% endblock content %}

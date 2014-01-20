@@ -5,6 +5,7 @@
 {% block css_extra %}
 {% endblock css_extra %}
 {% block extra_js %}
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery-ui-1.10.0.custom.min.js' %}" charset="utf-8"></script>
 {% endblock extra_js %}
 {% block content %}
     <style>
@@ -26,7 +27,7 @@
         cursor: move;
     }
     </style>
-    <h3>Endre rekkefølge på bildeserier i {{ category.name }}</h3>
+    <h3 class="section">Endre rekkefølge på bildeserier i {{ category.name }}</h3>
     <hr>
     <p>Dra titlene på bildeseriene i rekkefølgen du vil de skal vises.</p>
     <hr>
@@ -89,7 +90,7 @@
                         if (data.status == 200) {
                             console.log(data);
                             $(that).button('reset');
-                            $(that).addClass('btn-success');
+                            $(that).removeClass('btn-warning').addClass('btn-success');
                         }
                         else {
                             alert(data.error_msg);

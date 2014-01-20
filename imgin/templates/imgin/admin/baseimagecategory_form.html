@@ -4,7 +4,7 @@
 {% load url from future %}
 {% load static from staticfiles %}
 {% block content %}
-<h3>Legg til {{ model.verbose_name }}</h3>
+<h3 class="section">Legg til {{ model.verbose_name }}</h3>
 {% crispy form %}
 
 {% endblock content %}

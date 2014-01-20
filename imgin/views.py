@@ -240,6 +240,7 @@ class BaseImageCategoryCreateView(BaseCreateView):
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
+        self.object.slug = slugify(self.object.name)
         self.object.user = self.request.user
 
         messages.success(

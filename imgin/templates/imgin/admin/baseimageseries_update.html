@@ -5,13 +5,27 @@
 {% block css_extra %}
 {% endblock css_extra %}
 {% block extra_js %}
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.slugit.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.debounce-1.0.5.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery-ui-1.10.0.custom.min.js' %}" charset="utf-8"></script>
 {% endblock extra_js %}
 {% block content %}
     <style>
-    #sortable, #imagepool { list-style-type: none; margin: 0; padding: 0; width: 750px; }
-    #sortable li, #imagepool li { margin: 3px 3px 3px 0; padding: 1px; padding-bottom: 8px; float: left; width: 100px; height: 90px; font-size: 4em; text-align: center; }
+    #sortable,
+    #imagepool {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        width: 750px;
+    }
+    #sortable li,
+    #imagepool li {
+        float: left;
+        font-size: 4em;
+        text-align: center;
+    }
     </style>
-    <h3>Endre bildeserie</h3>
+    <h3 class="section">Endre bildeserie</h3>
     {% crispy form %}
 
     <hr>
@@ -28,7 +42,7 @@
         </ul>
     </div>
     <div style="margin-top: 10px;">
-        <button class="btn btn-success" id="store-order">Lagre rekkefølge</button>
+        <button class="btn btn-primary" id="store-order">Lagre rekkefølge</button>
     </div>
     <script>
         $(function() {
@@ -103,7 +117,7 @@
                         if (data.status == 200) {
                             console.log(data);
                             $(that).button('reset');
-                            $(that).addClass('btn-success');
+                            $(that).removeClass('btn-warning').addClass('btn-success');
                         }
                         else {
                             alert(data.error_msg);
