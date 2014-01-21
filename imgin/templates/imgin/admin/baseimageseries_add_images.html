@@ -10,7 +10,7 @@
     <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
 {% endblock extra_js %}
 {% block content %}
-    <h3>Ny bildeserie &rarr; {{ image_series.name }}</h3>
+    <h3 class="section">Ny bildeserie &rarr; {{ image_series.name }}</h3>
 
     <p>Klikk på knappen under for å velge filene du vil laste opp.</p>
     <div id="fileuploader" class="clearfix">
@@ -21,8 +21,8 @@
     </div>
     <div id="fileuploaderbtn">
         <span id="uploadspan">
-            <button class="btn btn-success btn-large" id="upload">
-                <i class="icon-upload icon-white"></i> Velg bilder
+            <button class="btn btn-success btn-lg" id="upload">
+                <i class="fa fa-cloud-upload fa-1x m-r-sm icon"></i> Velg bilder
             </button>
         </span>
     </div>
