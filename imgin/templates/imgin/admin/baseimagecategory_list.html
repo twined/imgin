@@ -23,8 +23,22 @@
                 <td>{{ category.name }}</td>
                 <td>{{ category.slug }}</td>
                 <td>{{ category.updated|date:"d/m/y" }}</td>
-                <td><a title="Endre" href="{{ category.get_update_url }}"><i class="icon-edit icon-large"></i></a></td>
-                <td><a title="Slett" href="{{ category.get_delete_url }}"><i class="icon-trash icon-large"></i></a></td>
+                <td>
+                    <a title="Endre" href="{{ category.get_update_url }}">
+                        <span class="fa-stack">
+                            <i class="fa fa-circle fa-stack-2x bluegray"></i>
+                            <i class="fa fa-edit fa-stack-1x"></i>
+                        </span>
+                    </a>
+                </td>
+                <td>
+                    <a title="Slett" href="{{ category.get_delete_url }}">
+                        <span class="fa-stack">
+                            <i class="fa fa-circle fa-stack-2x bluegray"></i>
+                            <i class="fa fa-trash-o fa-stack-1x"></i>
+                        </span>
+                    </a>
+                </td>
             </tr>
         {% endfor %}
     </tbody>
