@@ -373,7 +373,6 @@ class BaseImageSeriesUpdateView(BaseUpdateView):
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.user = self.request.user
-        self.object.order = 0
         messages.success(self.request, "Bildeserie oppdatert",
                          extra_tags='msg')
 
