@@ -401,6 +401,7 @@ class BaseImage(models.Model):
                 'success': True,
                 'url': self.image.url,
                 'thumbnail_url': self.url_t,
+                'large_url': self.url_l,
                 'id': self.id,
             }
         )
