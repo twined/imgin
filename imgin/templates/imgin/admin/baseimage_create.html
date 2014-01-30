@@ -3,11 +3,11 @@
 {% load crispy_forms_tags %}
 {% load url from future %}
 {% block css_extra %}
-    <link href="{% static 'css/fileuploader.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'admin/css/fileuploader.css' %}" rel="stylesheet" type="text/css">
 {% endblock css_extra %}
 {% block extra_js %}
-    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
-    <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/fileuploader/fileuploader.js' %}"></script>
 {% endblock extra_js %}
 {% block content %}
     <h3 class="section">Last opp bilder</h3>
@@ -20,8 +20,8 @@
     </div>
     <div id="fileuploaderbtn">
         <span id="uploadspan">
-            <button class="btn btn-success btn-large" id="upload">
-                <i class="icon-upload icon-white"></i> Velg bilder
+            <button class="btn btn-primary btn-lg" id="upload">
+                <i class="fa fa-cloud-upload m-r-xs"> </i> Velg bilder
             </button>
         </span>
     </div>

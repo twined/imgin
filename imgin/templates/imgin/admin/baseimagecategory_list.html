@@ -5,44 +5,42 @@
 {% block content %}
 <h3 class="section">{{ model.meta.verbose_name_plural }} – oversikt</h3>
 <section class="panel panel-default">
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Navn</th>
-            <th>Url</th>
-            <th>Endret</th>
-            <th></th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for category in image_categories %}
+    <table class="table">
+        <colgroup>
+            <col span="1" style="width: 50px; font-weight: bold;">
+            <col span="1">
+            <col span="1">
+            <col span="1" style="width: 60px;">
+            <col span="1" style="width: 140px;">
+        </colgroup>
+        <thead>
             <tr>
-                <td>{{ category.pk }}</td>
-                <td>{{ category.name }}</td>
-                <td>{{ category.slug }}</td>
-                <td>{{ category.updated|date:"d/m/y" }}</td>
-                <td>
-                    <a title="Endre" href="{{ category.get_update_url }}">
-                        <span class="fa-stack">
-                            <i class="fa fa-circle fa-stack-2x bluegray"></i>
-                            <i class="fa fa-edit fa-stack-1x"></i>
-                        </span>
-                    </a>
-                </td>
-                <td>
-                    <a title="Slett" href="{{ category.get_delete_url }}">
-                        <span class="fa-stack">
-                            <i class="fa fa-circle fa-stack-2x bluegray"></i>
-                            <i class="fa fa-trash-o fa-stack-1x"></i>
-                        </span>
-                    </a>
-                </td>
+                <th>Id</th>
+                <th>Navn</th>
+                <th>Url</th>
+                <th>Endret</th>
+                <th></th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for category in image_categories %}
+                <tr>
+                    <td>#{{ category.pk }}</td>
+                    <td>{{ category.name }}</td>
+                    <td>{{ category.slug }}</td>
+                    <td>{{ category.updated|date:"d/m/y" }}</td>
+                    <td>
+                        <a class="btn btn-rounded btn-sm btn-icon btn-default" title="Endre" href="{{ category.get_update_url }}">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                        <a class="btn btn-rounded btn-sm btn-icon btn-default" title="Slett" href="{{ category.get_delete_url }}">
+                            <i class="fa fa-trash-o"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </section>
 <a class="btn btn-success" href="{{ model.get_create_url }}">Opprett ny kategori</a>
 {% endblock content %}

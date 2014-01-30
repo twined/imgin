@@ -4,7 +4,7 @@ from setuptools import find_packages
 
 setup(
     name='imgin',
-    version='0.3.1',
+    version='0.3.2',
     author=u'Twined',
     author_email='www.twined.net',
     packages=find_packages(),

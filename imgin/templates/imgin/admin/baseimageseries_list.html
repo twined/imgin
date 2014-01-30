@@ -3,7 +3,7 @@
 {% load url from future %}
 {% load static from staticfiles %}
 {% block extra_js %}
-  <script type="text/javascript" src="{% static 'js/admin/images.js' %}" charset="utf-8"></script>
+  <script type="text/javascript" src="{% static 'admin/js/images.js' %}" charset="utf-8"></script>
 {% endblock extra_js %}
 {% block content %}
   <h3 class="section">{{ model.meta.verbose_name_plural }} – oversikt</h3>
@@ -61,7 +61,6 @@
       Ny bildeserie
     </a>
 
-  </div>
   <script type="text/javascript">
     function seriesDeleteCallback(data) {
         console.log(data);

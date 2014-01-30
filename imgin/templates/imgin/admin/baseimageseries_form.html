@@ -3,13 +3,13 @@
 {% load crispy_forms_tags %}
 {% load url from future %}
 {% block css_extra %}
-    <link href="{% static 'css/fileuploader.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'admin/css/fileuploader.css' %}" rel="stylesheet" type="text/css">
 {% endblock css_extra %}
 {% block extra_js %}
-    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
-    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.slugit.js' %}" charset="utf-8"></script>
-    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.debounce-1.0.5.js' %}" charset="utf-8"></script>
-    <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.slugit.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.debounce-1.0.5.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/fileuploader/fileuploader.js' %}"></script>
 {% endblock extra_js %}
 {% block content %}
     <h3 class="section">Ny bildeserie</h3>
@@ -24,7 +24,6 @@
         </ul>
     </div>
     {% endif %}
-
 
     <script>
         function getCookie(c_name) {
@@ -46,21 +45,5 @@
                 space: '-'
             });
         });
-        /*
-            // bind the imgs
-            $(document).on("click", ".upimg", function (event) {
-                // strip out "image"
-                id = $(this).attr('id').replace("image-", "");
-                url = $(this).attr('src');
-                up_show_form(id, url);
-                event.preventDefault();
-            });
-
-            $(".fileprogress").knob();
-        });
-        */
-        // in your app create uploader as soon as the DOM is ready
-        // don't wait for the window to load
-        //window.onload = createUploader;
     </script>
 {% endblock content %}

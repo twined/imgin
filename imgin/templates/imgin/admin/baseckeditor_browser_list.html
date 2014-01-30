@@ -1,34 +1,20 @@
 {% load static from staticfiles %}
 {% load crispy_forms_tags %}
 {% load url from future %}
-
-
-
-
-
-
-
-
-
-
-
-
-
 <html>
 <head>
     <link rel="stylesheet" href="{% static 'admin/css/bootstrap.css' %}" type="text/css" />
-    <link href="{% static 'css/fileuploader.css' %}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="{% static 'admin/css/fileuploader.css' %}" type="text/css">
     <link rel="stylesheet" href="{% static 'admin/css/animate.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'admin/css/font-awesome.min.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'admin/css/font.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'admin/css/admin.css' %}" type="text/css" />
     <link rel="stylesheet" href="{% static 'admin/css/twined.css' %}" type="text/css" />
 
-
-    <script src="{% static 'js/libs/jquery/jquery.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
-    <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
-    <script src="{% static 'admin/js/libs/slimscroll/jquery.slimscroll.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/fileuploader/fileuploader.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/slimscroll/jquery.slimscroll.min.js' %}" charset="utf-8"></script>
 </head>
 <body>
 <div class="container scrollable">
@@ -42,8 +28,8 @@
     </div>
     <div id="fileuploaderbtn">
         <span id="uploadspan">
-            <button class="btn btn-success btn-large" id="upload">
-                <i class="icon-upload icon-white"></i> Velg bilder
+            <button class="btn btn-primary btn-lg" id="upload">
+                <i class="fa fa-cloud-upload"></i> Velg bilder
             </button>
         </span>
     </div>

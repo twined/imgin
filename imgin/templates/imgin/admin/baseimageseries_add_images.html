@@ -3,11 +3,11 @@
 {% load crispy_forms_tags %}
 {% load url from future %}
 {% block css_extra %}
-    <link href="{% static 'css/fileuploader.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'admin/css/fileuploader.css' %}" rel="stylesheet" type="text/css">
 {% endblock css_extra %}
 {% block extra_js %}
-    <script type="text/javascript" src="{% static 'js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
-    <script type="text/javascript" src="{% static 'js/libs/fileuploader/fileuploader.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
+    <script type="text/javascript" src="{% static 'admin/js/libs/fileuploader/fileuploader.js' %}"></script>
 {% endblock extra_js %}
 {% block content %}
     <h3 class="section">Ny bildeserie &rarr; {{ image_series.name }}</h3>
@@ -21,7 +21,7 @@
     </div>
     <div id="fileuploaderbtn">
         <span id="uploadspan">
-            <button class="btn btn-success btn-lg" id="upload">
+            <button class="btn btn-primary btn-lg" id="upload">
                 <i class="fa fa-cloud-upload fa-1x m-r-sm icon"></i> Velg bilder
             </button>
         </span>
