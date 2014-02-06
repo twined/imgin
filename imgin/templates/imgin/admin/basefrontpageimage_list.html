@@ -118,7 +118,7 @@
                         if (data.status == 200) {
                             console.log(data);
                             $(that).button('reset');
-                            $(that).addClass('btn-success');
+                            $(that).removeClass('btn-warning').addClass('btn-success');
                         }
                         else {
                             alert(data.error_msg);
