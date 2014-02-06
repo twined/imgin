@@ -9,11 +9,23 @@
 {% endblock extra_js %}
 {% block content %}
     <style>
-    #sortable, #imagepool { list-style-type: none; margin: 0; padding: 0; width: 750px; }
-    #sortable li, #imagepool li { margin: 3px 3px 3px 0; padding: 1px; padding-bottom: 8px; float: left; width: 100px; height: 90px; font-size: 4em; text-align: center; }
+    #sortable,
+    #imagepool {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        width: 750px;
+    }
+    #sortable li,
+    #imagepool li {
+        float: left;
+        font-size: 4em;
+        text-align: center;
+    }
     </style>
     <h1>Sortér forsiden - {{ image_series.name }}</h1>
 
+    <hr>
     <p>Dra bildene i rekkefølgen du vil de skal vises. Dobbeltklikk for å fjerne et bilde fra forsiden.</p>
     <hr>
 
@@ -27,7 +39,7 @@
         </ul>
     </div>
     <div style="margin-top: 10px;">
-        <button class="btn btn-success" id="store-order" data-loading-text="Lagrer..">Lagre rekkefølge</button>
+        <button class="btn btn-primary" id="store-order"><i class="fa fa-save m-r-xs"> </i> Lagre rekkefølge</button>
     </div>
 
     <hr>
