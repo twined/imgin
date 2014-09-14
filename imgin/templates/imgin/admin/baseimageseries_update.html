@@ -12,10 +12,10 @@
 {% block content %}
     <style>
     .portfolioimage {
-        border: 2px solid #FFFEFE;
+        border: 4px solid #FFFEFE;
     }
     .portfolioimage.selected {
-        border: 2px solid #FF9999;
+        border: 4px solid #FF5555;
     }
     #sortable,
     #imagepool {
@@ -164,11 +164,6 @@
                 $('#image_credits').val($(this).attr('data-credits'));
             });
 
-            /*
-            $(document).on("click", "#close-info", function (e) {
-                $('#edit-image').slideUp();
-            });
-            */
             $(document).on("click", "#hide-images", function (e) {
                 var ids = $('.selected').map(function(){
                     return $(this).attr('data-id');

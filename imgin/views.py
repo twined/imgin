@@ -148,7 +148,7 @@ class AJAXBaseImageDeleteView(BaseView):
         return HttpResponse(json.dumps({
             'status': 200,
             'id': photo_id
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 
 class AJAXBaseImageDeleteMultipleView(BaseView):
@@ -173,7 +173,7 @@ class AJAXBaseImageDeleteMultipleView(BaseView):
         return HttpResponse(json.dumps({
             'status': 200,
             'ids': ids
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 
 class AJAXBaseImageListView(BaseView):
@@ -189,7 +189,7 @@ class AJAXBaseImageListView(BaseView):
                 "image": image.url_l()
             } for image in self.model.objects.all().order_by("-created")
         ]
-        return HttpResponse(json.dumps(images), mimetype="application/json")
+        return HttpResponse(json.dumps(images), content_type="application/json")
 
 
 class AJAXBaseImageSortView(BaseView):
@@ -216,7 +216,7 @@ class AJAXBaseImageSortView(BaseView):
 
         return HttpResponse(json.dumps({
             'status': 200,
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 # - BaseImageCategory views --------------------------------------------
 
@@ -319,7 +319,7 @@ class AJAXBaseImageCategorySortSeriesUpdate(CreateView):
 
         return HttpResponse(json.dumps({
             'status': 200,
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 # - BaseImageSeries views --------------------------------------------
 
@@ -418,7 +418,7 @@ class AJAXBaseImageSeriesDeleteView(BaseView):
         return HttpResponse(json.dumps({
             'status': 200,
             'id': "#series-%s" % request.POST['pk']
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 
 # - Frontpage Views ----------------------------------------------------
@@ -464,7 +464,7 @@ class AJAXBaseFrontpageCreateView(CreateView):
             'status': 200,
             'id': "#image-%s" % photo_id,
             'f_id': f.pk,
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 
 class AJAXBaseFrontpageDeleteView(BaseView):
@@ -484,7 +484,7 @@ class AJAXBaseFrontpageDeleteView(BaseView):
         return HttpResponse(json.dumps({
             'status': 200,
             'id': photo_id
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 
 class AJAXBaseFrontpageSortView(BaseView):
@@ -508,7 +508,7 @@ class AJAXBaseFrontpageSortView(BaseView):
 
         return HttpResponse(json.dumps({
             'status': 200,
-        }), mimetype="application/json")
+        }), content_type="application/json")
 
 # - CKEDITOR view ------------------------------------------------------
 
