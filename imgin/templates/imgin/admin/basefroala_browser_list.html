@@ -1,16 +1,5 @@
-{% extends "admin/base.html" %}
-{% load static from staticfiles %}
-{% load crispy_forms_tags %}
-{% load url from future %}
-{% block css_extra %}
-    <link href="{% static 'admin/css/fileuploader.css' %}" rel="stylesheet" type="text/css">
-{% endblock css_extra %}
-{% block extra_js %}
-    <script type="text/javascript" src="{% static 'admin/js/libs/jquery/jquery.knob.js' %}" charset="utf-8"></script>
-    <script type="text/javascript" src="{% static 'admin/js/libs/fileuploader/fileuploader.js' %}"></script>
-{% endblock extra_js %}
-{% block content %}
-    <h1>Last opp bilder!</h1>
+<div class="container scrollable">
+    <h1>Last opp bilder</h1>
     <p>Klikk på knappen under for å velge filene du vil laste opp.</p>
     <div id="fileuploader" class="clearfix">
         <noscript>
@@ -21,16 +10,17 @@
     <div id="fileuploaderbtn">
         <span id="uploadspan">
             <button class="btn btn-primary btn-lg" id="upload">
-                <i class="fa fa-cloud-upload m-r-xs"> </i> Velg bilder
+                <i class="fa fa-cloud-upload"></i> Velg bilder
             </button>
         </span>
     </div>
+
     <div id="uploaded-images" class="clearfix">
         <h3>Opplastede bilder</h3>
         <hr>
         {% for image in images %}
             <div class="upthumb">
-                <img id="image-{{ image.pk }}" class="upimg" src="{{ image.url_t }}" />
+                <img id="image-{{ image.pk }}" class="upimg" src="{{ image.url_t }}" data-target="{{ image.url_l }}" />
             </div>
         {% endfor %}
     </div>
@@ -38,7 +28,6 @@
 
     <script>
         $.ajaxSetup({
-
              beforeSend: function(xhr, settings) {
                  function getCookie(name) {
                      var cookieValue = null;
@@ -47,30 +36,20 @@
                          for (var i = 0; i < cookies.length; i++) {
                              var cookie = jQuery.trim(cookies[i]);
                              // Does this cookie string begin with the name we want?
-                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                 break;
-                             }
+                         if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                             break;
                          }
                      }
-                     return cookieValue;
                  }
-                 var csrftoken = getCookie('csrftoken');
-
-                 function csrfSafeMethod(method) {
-                     // these HTTP methods do not require CSRF protection
-                     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                 return cookieValue;
                  }
-                 $.ajaxSetup({
-                     beforeSend: function(xhr, settings) {
-                         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                         }
-                     }
-                 });
+                 if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                     // Only send the token to relative URLs i.e. locally.
+                     xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                 }
              }
         });
-
         function up_create_image(id, data) {
             if (data.success) {
                 // make the progress indicator green
@@ -83,7 +62,7 @@
                 // make sure we can see the uploaded images container
                 $('#uploaded-images').show();
                 // append the thumb and fade in
-                $('<div class="upthumb"><img id="image-' + data.id + '" class="upimg" src="' + data.thumbnail_url + '" /></div>').hide().appendTo('#uploaded-images').fadeIn();
+                $('<div class="upthumb"><img data-target="' + data.large_url + '" id="image-' + data.id + '" class="upimg" src="' + data.thumbnail_url + '" /></div>').hide().appendTo('#uploaded-images').fadeIn();
             } else {
                 $('.fileitem[data-id="'+id+'"] .fileprogress').trigger('configure', {"fgColor":"#AA0000",});
                 $(".fileitem[data-id='"+id+"'] .filestatus").html('<i class="icon-minus-sign"> </i> ' + data.error);
@@ -163,4 +142,27 @@
         // don't wait for the window to load
         window.onload = createUploader;
     </script>
-{% endblock content %}
+
+{% comment %}
+        <h4>
+            Klikk på bildet du vil sette inn i dokumentet
+        </h4>
+        {% for image in images %}
+            <img style="margin-bottom: 5px;" src="{{ image.url_t }}" data-target="{{ image.url_l }}" />
+        {% endfor %}
+{% endcomment %}
+
+            <script type="text/javascript">
+                $(document).ready(function() {
+                    //$('img').click(function(e) {
+                    $(document).on("click", "img", function() {
+                        window.opener.CKEDITOR.tools.callFunction(
+                            {{ func_num }},
+                            $(this).attr('data-target')
+                        );
+                        window.close();
+                    });
+                });
+
+            </script>
+    </div>

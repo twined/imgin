@@ -14,11 +14,21 @@ from django.views.generic import (
     CreateView, DeleteView, ListView,
     TemplateView, UpdateView, View
 )
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
 
 from .forms import BaseImageCategoryForm, BaseImageSeriesForm
 from .models import (
     BaseFrontpageImage, BaseImage, BaseImageCategory, BaseImageSeries
 )
+
+
+class DispatchProtectionMixin(object):
+    @method_decorator(csrf_protect)
+    @method_decorator(never_cache)
+    def dispatch(self, *args, **kwargs):
+        return super(DispatchProtectionMixin, self).dispatch(*args, **kwargs)
 
 
 # - Extendable Generic Views -------------------------------------------
@@ -86,7 +96,7 @@ class BaseCreateView(CreateView):
 # - BaseImage views ----------------------------------------------------
 
 
-class BaseImageCreateView(BaseTemplateView):
+class BaseImageCreateView(DispatchProtectionMixin, BaseTemplateView):
     """
     Displays upload form. Previously uploaded images are available
     as `images` in template.
@@ -355,7 +365,7 @@ class BaseImageSeriesCreateView(BaseCreateView):
         return super(BaseImageSeriesCreateView, self).form_valid(form)
 
 
-class BaseImageSeriesUpdateView(BaseUpdateView):
+class BaseImageSeriesUpdateView(DispatchProtectionMixin, BaseUpdateView):
     model = BaseImageSeries
     form_class = BaseImageSeriesForm
     series_id_attr_name = 'image_series_id'
@@ -379,7 +389,7 @@ class BaseImageSeriesUpdateView(BaseUpdateView):
         return super(BaseImageSeriesUpdateView, self).form_valid(form)
 
 
-class BaseImageSeriesAddImagesView(TemplateView):
+class BaseImageSeriesAddImagesView(DispatchProtectionMixin, TemplateView):
     model = BaseImageSeries
     related_images = 'related_images'
     template_name = 'imgin/admin/baseimageseries_add_images.html'
@@ -524,6 +534,40 @@ class BaseCKEDITORBrowserView(BaseListView):
                         self).get_context_data(**kwargs)
         context['func_num'] = self.request.GET.get('CKEditorFuncNum')
         return context
+
+
+# - FroalaJson view ------------------------------------------------------
+
+
+class BaseAJAXFroalaBrowserView(BaseListView):
+    model = BaseImage
+    context_object_name = "images"
+    template_name = 'imgin/admin/basefroala_browser_list.html'
+
+    def get(self, request, *args, **kwargs):
+        image_list = []
+        images = self.model.objects.all()
+
+        for image in images:
+            image_list.append({
+                'src': image.url_t,
+                'info': {
+                    'target': image.url_l,
+                }
+            })
+
+        return HttpResponse(json.dumps(image_list),
+                            content_type="application/json")
+
+
+class BaseAJAXFroalaUploadView(BaseView):
+    model = BaseImage
+
+    def post(self, request, *args, **kwargs):
+        image = self.model()
+        return HttpResponse(
+            image.handle_froala_upload(request, *args, **kwargs)
+        )
 
 
 # - Misc Utility views -------------------------------------------------

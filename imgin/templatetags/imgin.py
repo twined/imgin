@@ -1,4 +1,14 @@
 from django import template
+
+register = template.Library()
+
+
+@register.filter
+def ratio(image):
+    if not image:
+        return 0
+    return float(image.height)/float(image.width)*100
+
 '''
 from images.models import ImageSeries, ImageCategory
 

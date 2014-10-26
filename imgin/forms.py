@@ -21,7 +21,6 @@ class BaseImageCategoryForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        Field.template = 'bootstrap/custom_field.html'
         self.helper = FormHelper()
         self.helper.add_input(
             Submit('submit', 'Lagre', css_class="btn btn-primary"))
@@ -41,7 +40,6 @@ class BaseImageSeriesForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        Field.template = 'bootstrap/custom_field.html'
         self.helper = FormHelper()
         self.helper.add_input(
             Submit('submit', 'Lagre', css_class="btn btn-primary"))

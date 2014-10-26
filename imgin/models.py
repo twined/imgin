@@ -86,7 +86,9 @@ class BaseImageSeries(models.Model):
     name = models.CharField('Navn', max_length=255)
     slug = models.CharField('URL', max_length=50)
     credits = models.CharField('Krediteringer', blank=True, max_length=255)
-    user = models.ForeignKey(User)
+    #  user = models.ForeignKey(User)
+    user = models.ForeignKey(
+        User, related_name="%(app_label)s_%(class)s_set")
     order = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -125,6 +127,10 @@ class BaseImage(models.Model):
 
     IMGIN_KEY = 'base'
     IMGIN_CFG = imgin.settings.IMGIN_CONFIG[IMGIN_KEY]
+
+    @property
+    def ratio(self):
+        return float(self.height)/float(self.width)*100
 
     @property
     def filename(self):
@@ -211,12 +217,19 @@ class BaseImage(models.Model):
                     sizedir,
                     '%s.%s' % (self.filename_without_extension, 'png')
                 )
+                filename_jpeg = os.path.join(
+                    self.get_uploaddir(),
+                    sizedir,
+                    '%s.%s' % (self.filename_without_extension, 'jpeg')
+                )
             except AttributeError:
                 break
             if os.path.exists(filename):
                 os.remove(filename)
             if os.path.exists(filename_png):
                 os.remove(filename_png)
+            if os.path.exists(filename_jpeg):
+                os.remove(filename_jpeg)
 
     def _calculate_wouldbe_size(self, geometry):
         x_image, y_image = map(float, (self.width, self.height))
@@ -290,7 +303,7 @@ class BaseImage(models.Model):
                 self.image,
                 size_string,
                 crop=size_map[idx]['crop'],
-                upscale=False,
+                upscale=True if idx is 't' else False,
                 quality=size_map[idx]['quality'],
                 format=size_map[idx]['format'],
             )
@@ -405,6 +418,57 @@ class BaseImage(models.Model):
                 'id': self.id,
             }
         )
+
+    def handle_froala_upload(self, request, *args, **kwargs):
+        # read file info from stream
+        if 'file' not in request.FILES:
+            return json.dumps({
+                "error": "Ingen gjenkjennelig fil lastet opp."
+            })
+
+        file = request.FILES['file']
+        filesize = file.size
+        fileextension = file.name.split('.')[-1]
+        filename = "%s.%s" % (uuid.uuid4(), fileextension)
+
+        # check first for allowed file extensions
+        if not (self._get_ext_from_filename(filename) in
+                self.IMGIN_CFG['allowed_exts']):
+            return json.dumps({
+                "error": "Filen har ikke et gyldig filformat."
+            })
+
+        # check file size
+        if filesize > self.IMGIN_CFG['size_limit']:
+            return json.dumps({
+                "error": "Filen er for stor."
+            })
+
+        self.populate(request, **kwargs)
+
+        uploaddir = os.path.join(self.get_uploaddir(), 'o')
+        mediadir = os.path.join(self.get_mediadir(), 'o')
+
+        _mkdirs(uploaddir)
+
+        fd = open(os.path.join(uploaddir, filename), 'wb')
+        for chunk in file.chunks():
+            fd.write(chunk)
+        fd.close()
+
+        self.image = self.image.field.attr_class(
+            self, self.image.field,
+            os.path.join(mediadir, filename))
+
+        # get the WxH of original image
+        image_obj = default.engine.get_image(self.image)
+        (self.width, self.height) = \
+            default.engine.get_image_size(image_obj)
+        self.save()
+
+        self.create_thumbs(**kwargs)
+
+        return json.dumps({'link': self.url_l})
 
     def _get_ext_from_filename(self, filename):
         import os
