@@ -48,6 +48,7 @@ class GetResponsiveImageObject(Tag):
 
     def render_tag(self, context, image, varname, crop):
         device = context['device']
+        mq_use = ''
         if isinstance(image, ThumbnailFieldFile):
             if not image.instance:
                 return ''
