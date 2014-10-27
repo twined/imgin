@@ -22,53 +22,16 @@ class GetResponsiveImage(Tag):
     )
 
     def render_tag(self, context, image, crop):
-
         device = context['device']
-        if isinstance(image, ThumbnailFieldFile):
-            if not image.instance:
-                return ''
-
-            mq_map = image.instance.media_queries.get(image.field.name)
-
-            if not mq_map:
-                return ''
-
-            if crop:
-                # look for keys with crop- in them
-                matches = {key: val for key, val in mq_map.items() if
-                           key.startswith('crop')}
-            else:
-                # look for keys without crop- in them
-                matches = {key: val for key, val in mq_map.items() if
-                           not key.startswith('crop')}
-
-            for mq_key, media_queries in matches.items():
-                if not media_queries:
-                    mq_use = mq_key
-                    continue
-                for media_query in media_queries:
-                    if len(set(media_query).intersection(device.matched)) == len(media_query):
-                        mq_use = mq_key
-
-            image_url = getattr(image, '%s_url' % mq_use)
-
-            if not image_url:
-                return ''
-
-            return '<img src="%(url)s" title="%(title)s" alt="%(title)s" width="%(width)s" height="%(height)s" />' % {
-                'url': image_url,
-                'title': image.instance.header,
-                'width': getattr(image, mq_use).width,
-                'height': getattr(image, mq_use).height
-            }
-
-        else:
-            return '<img src="%(url)s" title="%(title)s" alt="%(title)s" width="%(width)s" height="%(height)s" />' % {
-                'url': image.responsive_url(device.matched),
-                'title': image.title,
-                'width': image.width,
-                'height': image.height
-            }
+        return image.responsive_url(device.matched)
+        '''
+        return '<img src="%(url)s" title="%(title)s" alt="%(title)s" width="%(width)s" height="%(height)s" />' % {
+            'url': image.responsive_url(device.matched),
+            'title': image.title,
+            'width': image.width,
+            'height': image.height
+        }
+        '''
 
 
 register.tag(GetResponsiveImage)
