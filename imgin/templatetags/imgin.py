@@ -83,7 +83,7 @@ class GetResponsiveImageObject(Tag):
                         mq_use = mq_key
 
             if not mq_use:
-                context[varname] = ''
+                context[varname] = image
                 return ''
 
             image_object = getattr(image, mq_use)
