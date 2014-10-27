@@ -1,10 +1,12 @@
+import logging
 from django import template
 from classytags.core import Tag, Options
 from classytags.arguments import Argument, KeywordArgument
-from classytags.helpers import AsTag
 from thumbnailfield.fields import ThumbnailFieldFile
 
 register = template.Library()
+
+logger = logging.getLogger(__name__)
 
 
 @register.filter
@@ -24,14 +26,6 @@ class GetResponsiveImage(Tag):
     def render_tag(self, context, image, crop):
         device = context['device']
         return image.responsive_url(device.matched)
-        '''
-        return '<img src="%(url)s" title="%(title)s" alt="%(title)s" width="%(width)s" height="%(height)s" />' % {
-            'url': image.responsive_url(device.matched),
-            'title': image.title,
-            'width': image.width,
-            'height': image.height
-        }
-        '''
 
 
 register.tag(GetResponsiveImage)
@@ -50,30 +44,42 @@ class GetResponsiveImageObject(Tag):
         device = context['device']
         mq_use = ''
         if isinstance(image, ThumbnailFieldFile):
+            logger.debug('&& render_tag - isinstance(ThumbnailFieldFile)')
             if not image.instance:
+                logger.debug('&& render_tag - no image.instance)')
                 return ''
 
             mq_map = image.instance.media_queries.get(image.field.name)
+            logger.debug('&& mq_map =')
+            logger.debug(mq_map)
 
             if not mq_map:
+                logger.debug('&& render_tag - no mq_map')
                 context[varname] = ''
                 return ''
 
             if crop:
                 # look for keys with crop- in them
+                logger.debug('&& render_tag - crop')
                 matches = {key: val for key, val in mq_map.items() if
                            key.startswith('crop')}
+                logger.debug('&& matches = %s' % matches)
             else:
                 # look for keys without crop- in them
+                logger.debug('&& render_tag - no crop')
                 matches = {key: val for key, val in mq_map.items() if
                            not key.startswith('crop')}
+                logger.debug('&& matches = %s' % matches)
 
             for mq_key, media_queries in matches.items():
                 if not media_queries:
+                    logger.debug('&& not media_queries')
                     mq_use = mq_key
                     continue
                 for media_query in media_queries:
+                    logger.debug('&& media_query = %s' % media_query)
                     if len(set(media_query).intersection(device.matched)) == len(media_query):
+                        logger.debug('&& render_tag - media_query - match found')
                         mq_use = mq_key
 
             if not mq_use:
