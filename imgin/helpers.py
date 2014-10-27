@@ -1,0 +1,2 @@
+class ImginError(Exception):
+    pass

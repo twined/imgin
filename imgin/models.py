@@ -19,9 +19,11 @@ from django.db import models
 import imgin.settings
 
 from sorl.thumbnail import (
-    default, delete as sorl_delete, get_thumbnail,
-    ImageField
+    default, delete as sorl_delete,
+    #get_thumbnail,
 )
+from imgin.utils import get_thumbnail
+
 from sorl.thumbnail.parsers import parse_geometry
 
 from .utils import _mkdirs, toint
@@ -117,7 +119,7 @@ class BaseImageSeries(models.Model):
 
 
 class BaseImage(models.Model):
-    image = ImageField(upload_to='images')
+    image = models.ImageField(upload_to='images')
     user = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -127,6 +129,14 @@ class BaseImage(models.Model):
 
     IMGIN_KEY = 'base'
     IMGIN_CFG = imgin.settings.IMGIN_CONFIG[IMGIN_KEY]
+
+    def __init__(self, *args, **kwargs):
+        super(BaseImage, self).__init__(*args, **kwargs)
+        for name in self.IMGIN_CFG['size_map'].iterkeys():
+            if name is None:
+                continue
+            fget = lambda self, name = name: self.get_url(name)
+            setattr(BaseImage, 'url_%s' % name, property(fget=fget))
 
     @property
     def ratio(self):
@@ -144,7 +154,21 @@ class BaseImage(models.Model):
     def format(self):
         return os.path.splitext(self.filename)[1].lower()
 
-    def get_url(self, size):
+    def responsive_url(self, matched_media_queries):
+        size_map = self.IMGIN_CFG['size_map']
+        for size_map_key, size_map_data in size_map.items():
+            media_queries = size_map_data.get('media_queries')
+            if not media_queries:
+                continue
+            for media_query in media_queries:
+                if len(set(media_query).intersection(matched_media_queries)) == len(media_query):
+                    return self.get_url(size_map_key)
+
+        return self.get_url()
+
+    def get_url(self, size=None):
+        if not size:
+            size = self.IMGIN_CFG['default_map']
         has_http = False
         path, filename = os.path.split(self.image.url)
         if path[0:7].lower() == 'http://':
@@ -156,41 +180,12 @@ class BaseImage(models.Model):
             filename,
             self.IMGIN_CFG['size_map'][size]['format'].lower()
         )
-        # skip up a dir from o/ subdir
+        # skip up a dir from o/ directory
         path = os.path.normpath(os.path.join(path, os.path.pardir))
         if has_http:
             path = 'http:/%s' % path
 
         return os.path.join(path, size, filename.lower())
-
-    @property
-    def url_l(self):
-        has_http = False
-        path, filename = os.path.split(self.image.url)
-        if self.height != 600:
-            return self.get_url('l')
-
-        if path[0:7].lower() == 'http://':
-            has_http = True
-            path = path[6:]
-
-        # skip up a dir from o/ subdir
-        path = os.path.normpath(os.path.join(path, os.path.pardir))
-        if has_http:
-            path = 'http:/%s' % path
-        return os.path.join(path, 'l', filename.lower())
-
-    @property
-    def url_m(self):
-        return self.get_url('m')
-
-    @property
-    def url_s(self):
-        return self.get_url('s')
-
-    @property
-    def url_t(self):
-        return self.get_url('t')
 
     @property
     def is_portrait(self):
@@ -205,7 +200,6 @@ class BaseImage(models.Model):
         Deletes image's associated thumbnails
         """
         size_map = self.IMGIN_CFG['size_map']
-
         for sizedir, data in size_map.items():
             try:
                 filename = os.path.join(
@@ -279,26 +273,6 @@ class BaseImage(models.Model):
         for idx, data in size_map.items():
             size_string = self._get_size_string(size_map[idx])
 
-            if self.height == 600 and idx == 'l':
-                ext = self.format
-                imgdir = os.path.join(
-                    self.get_uploaddir(),
-                    size_map[idx]['dir'])
-
-                _mkdirs(imgdir)
-                destination = os.path.abspath(
-                    os.path.join(
-                        imgdir, '%s%s' % (self.filename_without_extension,
-                                          ext.lower())
-                    )
-                )
-                try:
-                    copyfile(self.image.path, destination)
-                except OSError, e:
-                    if e.errno != errno.EEXIST:
-                        raise
-                continue
-
             resized_src = get_thumbnail(
                 self.image,
                 size_string,
@@ -307,6 +281,7 @@ class BaseImage(models.Model):
                 quality=size_map[idx]['quality'],
                 format=size_map[idx]['format'],
             )
+
             ext = size_map[idx]['format']
 
             if ext[0] != '.':
@@ -318,7 +293,7 @@ class BaseImage(models.Model):
 
             _mkdirs(imgdir)
 
-            resized_dest = os.path.abspath(
+            resized_image_destination_path = os.path.abspath(
                 os.path.join(
                     imgdir, '%s%s' % (
                         self.filename_without_extension,
@@ -326,9 +301,10 @@ class BaseImage(models.Model):
                 )
             )
 
-            f = open(resized_dest, 'w')
-            f.write(resized_src.read())
-            f.close()
+            resized_src.save(
+                resized_image_destination_path,
+                quality=size_map[idx]['quality'] or 90,
+                optimize=True)
 
     def get_dir_qualifier(self):
         '''

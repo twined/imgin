@@ -17,6 +17,7 @@ IMGIN_CONFIG = {
         'allowed_exts': [".jpg", ".png", ".jpeg",
                          ".JPG", ".PNG", ".JPEG"],
         'belongs_to': 'ImageSeries',
+        'default_map': 'l',
         'upload_dir': os.path.join('images', 'portfolio'),
         'size_limit': 10240000,
         'size_map': {
