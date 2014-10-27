@@ -76,6 +76,10 @@ class GetResponsiveImageObject(Tag):
                     if len(set(media_query).intersection(device.matched)) == len(media_query):
                         mq_use = mq_key
 
+            if not mq_use:
+                context[varname] = ''
+                return ''
+
             image_object = getattr(image, mq_use)
 
             if not image_object:
