@@ -1,3 +1,9 @@
+"""
+// Twined - Imgin
+// template tag definitions for the Imgin app
+// (c) Twined/Univers 2009-2014. All rights reserved.
+"""
+
 import logging
 from django import template
 from classytags.core import Tag, Options
