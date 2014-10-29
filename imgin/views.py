@@ -16,7 +16,7 @@ from django.views.generic import (
 )
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
 from .forms import BaseImageCategoryForm, BaseImageSeriesForm
 from .models import (
@@ -30,6 +30,11 @@ class DispatchProtectionMixin(object):
     def dispatch(self, *args, **kwargs):
         return super(DispatchProtectionMixin, self).dispatch(*args, **kwargs)
 
+
+class CSRFExemptMixin(object):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super(CSRFExemptMixin, self).dispatch(*args, **kwargs)
 
 # - Extendable Generic Views -------------------------------------------
 
@@ -560,7 +565,7 @@ class BaseAJAXFroalaBrowserView(BaseListView):
                             content_type="application/json")
 
 
-class BaseAJAXFroalaUploadView(BaseView):
+class BaseAJAXFroalaUploadView(CSRFExemptMixin, BaseView):
     model = BaseImage
 
     def post(self, request, *args, **kwargs):
