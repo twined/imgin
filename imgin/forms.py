@@ -8,9 +8,10 @@
 from django import forms
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Field, Submit
+from crispy_forms.layout import Layout, Submit
 
-from imgin.models import BaseImageSeries, BaseImageCategory
+from .models import BaseImageSeries, BaseImageCategory
+from cerebrum.fields import SlugField
 
 
 class BaseImageCategoryForm(forms.ModelForm):
@@ -33,14 +34,13 @@ class BaseImageCategoryForm(forms.ModelForm):
 
 
 class BaseImageSeriesForm(forms.ModelForm):
-    slug = forms.CharField(
-        required=True,
-        initial='',
-        widget=forms.TextInput(attrs={'readonly': 'readonly'})
-    )
-
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'name',
+            SlugField('slug'),
+            'credits',
+        )
         self.helper.add_input(
             Submit('submit', 'Lagre', css_class="btn btn-primary"))
 
@@ -52,7 +52,7 @@ class BaseImageSeriesForm(forms.ModelForm):
         if not self.has_changed():
             return data
 
-        if not 'slug' in self.changed_data:
+        if 'slug' not in self.changed_data:
             return data
 
         try:
