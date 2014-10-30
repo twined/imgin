@@ -5,12 +5,11 @@
 # (c) Twined/Univers 2009-2013. All rights reserved.
 # ----------------------------------------------------------------------
 
-import errno
 import json
 import os
 import uuid
 
-from shutil import copyfile
+from PIL import Image
 
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -18,16 +17,12 @@ from django.db import models
 
 import imgin.settings
 
-from sorl.thumbnail import (
-    default, delete as sorl_delete,
-    #get_thumbnail,
-)
-from imgin.utils import get_thumbnail
-
-from sorl.thumbnail.parsers import parse_geometry
-
-from .utils import _mkdirs, toint
 from .managers import BaseFrontpageImageManager
+from .utils import _mkdirs
+from .utils import get_image_size
+from .utils import get_thumbnail
+from .utils import parse_geometry
+from .utils import toint
 
 
 class BaseFrontpageImage(models.Model):
@@ -119,6 +114,9 @@ class BaseImageSeries(models.Model):
 
 
 class BaseImage(models.Model):
+    IMGIN_KEY = 'base'
+    IMGIN_CFG = imgin.settings.IMGIN_CONFIG[IMGIN_KEY]
+
     image = models.ImageField(upload_to='images')
     user = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -126,9 +124,6 @@ class BaseImage(models.Model):
     order = models.IntegerField()
     width = models.IntegerField()
     height = models.IntegerField()
-
-    IMGIN_KEY = 'base'
-    IMGIN_CFG = imgin.settings.IMGIN_CONFIG[IMGIN_KEY]
 
     def __init__(self, *args, **kwargs):
         super(BaseImage, self).__init__(*args, **kwargs)
@@ -378,9 +373,9 @@ class BaseImage(models.Model):
             os.path.join(mediadir, filename))
 
         # get the WxH of original image
-        image_obj = default.engine.get_image(self.image)
+        image_obj = Image.open(self.image)
         (self.width, self.height) = \
-            default.engine.get_image_size(image_obj)
+            get_image_size(image_obj)
         self.save()
 
         self.create_thumbs(**kwargs)
@@ -437,9 +432,9 @@ class BaseImage(models.Model):
             os.path.join(mediadir, filename))
 
         # get the WxH of original image
-        image_obj = default.engine.get_image(self.image)
+        image_obj = Image.open(self.image)
         (self.width, self.height) = \
-            default.engine.get_image_size(image_obj)
+            get_image_size(image_obj)
         self.save()
 
         self.create_thumbs(**kwargs)
@@ -452,10 +447,10 @@ class BaseImage(models.Model):
         return extension
 
     def delete(self, *args, **kwargs):
+        # deletes the image and any connected thumbnails
         self.delete_thumbs()
-
         try:
-            sorl_delete(self.image)
+            self.image.storage.delete(self.image)
         except AttributeError:
             pass
         super(BaseImage, self).delete(*args, **kwargs)

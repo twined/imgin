@@ -11,8 +11,17 @@
 {% endblock extra_js %}
 {% block content %}
     <style>
+    .placeholder {
+        width: 148px;
+        height: 148px;
+        background-color: #fff;
+        border: 4px dotted #ccc;
+        margin: 5px;
+        box-sizing: border-box;
+    }
     .portfolioimage {
         border: 4px solid #FFFEFE;
+        margin: 5px;
     }
     .portfolioimage.selected {
         border: 4px solid #FF5555;
@@ -22,7 +31,7 @@
         list-style-type: none;
         margin: 0;
         padding: 0;
-        width: 750px;
+        position: relative;
     }
     #sortable li,
     #imagepool li {
@@ -34,7 +43,7 @@
         opacity: 0.3;
     }
     </style>
-    <h1>Endre bildeserie</h1>
+    <h1>{{ image_series.project_set.first.title }} - Endre bildeserie</h1>
     {% crispy form %}
 
     <hr>
@@ -87,6 +96,7 @@
 
     <div style="margin-top: 10px;">
         <button class="btn btn-primary" id="store-order"><i class="fa fa-save m-r-xs"> </i> Lagre rekkefølge</button>
+        <a class="btn btn-primary" role="button" href="{% url 'admin:projects:series-addimages' image_series_id=image_series.pk %}"><i class="fa fa-save m-r-xs"> </i> Last opp bilder</a>
         <button class="btn disabled" id="hide-images">Skjul/vis bilder i oversikten</button>
         <button class="btn disabled" id="delete-images">Slett valgte bilder</button>
     </div>
@@ -98,6 +108,9 @@
                 space: '-'
             });
             $("#sortable").sortable({
+                containment: "parent",
+                scroll: true,
+                placeholder: "placeholder",
                 change: function( event, ui ) {
                     $("#store-order").removeClass('btn-success').addClass('btn-warning');
                 }

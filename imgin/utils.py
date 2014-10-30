@@ -47,18 +47,6 @@ def merge_settings(default_settings, user_settings):
     return merged
 
 
-def delete_connected_images(photo):
-    sizedirs = ('l', 'm', 's',)
-    for sizedir in sizedirs:
-        filename = os.path.join(settings.MEDIA_ROOT, 'images', 'posts',
-                                sizedir, photo.filename)
-        if os.path.exists(filename):
-            os.remove(filename)
-
-    sorl_delete(photo.image)
-    photo.delete()
-
-
 def _mkdirs(path):
     try:
         os.makedirs(path)
