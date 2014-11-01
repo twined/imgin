@@ -266,40 +266,45 @@ class BaseImage(models.Model):
         size_map = self.IMGIN_CFG['size_map']
 
         for idx, data in size_map.items():
-            size_string = self._get_size_string(size_map[idx])
+            self.create_thumb(idx)
 
-            resized_src = get_thumbnail(
-                self.image,
-                size_string,
-                crop=size_map[idx]['crop'],
-                upscale=True if idx is 't' else False,
-                quality=size_map[idx]['quality'],
-                format=size_map[idx]['format'],
-            )
+    def create_thumb(self, idx):
+        size_map = self.IMGIN_CFG['size_map']
+        size_string = self._get_size_string(size_map[idx])
 
-            ext = size_map[idx]['format']
+        resized_src = get_thumbnail(
+            self.image,
+            size_string,
+            crop=size_map[idx]['crop'],
+            upscale=True if idx is 't' else False,
+            quality=size_map[idx]['quality'],
+            format=size_map[idx]['format'],
+        )
 
-            if ext[0] != '.':
-                ext = '.%s' % ext
+        ext = size_map[idx]['format']
 
-            imgdir = os.path.join(
-                self.get_uploaddir(),
-                size_map[idx]['dir'])
+        if ext[0] != '.':
+            ext = '.%s' % ext
 
-            _mkdirs(imgdir)
+        imgdir = os.path.join(
+            self.get_uploaddir(),
+            size_map[idx]['dir'])
 
-            resized_image_destination_path = os.path.abspath(
-                os.path.join(
-                    imgdir, '%s%s' % (
-                        self.filename_without_extension,
-                        ext.lower())
+        _mkdirs(imgdir)
+
+        resized_image_destination_path = os.path.abspath(
+            os.path.join(
+                imgdir, '%s%s' % (
+                    self.filename_without_extension,
+                    ext.lower()
                 )
             )
+        )
 
-            resized_src.save(
-                resized_image_destination_path,
-                quality=size_map[idx]['quality'] or 90,
-                optimize=True)
+        resized_src.save(
+            resized_image_destination_path,
+            quality=size_map[idx]['quality'] or 90,
+            optimize=True)
 
     def get_dir_qualifier(self):
         '''
