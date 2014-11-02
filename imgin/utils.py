@@ -11,13 +11,9 @@ import os
 import re
 import types
 import logging
+
 from cStringIO import StringIO as BufferIO
-
 from PIL import Image, ImageFile
-
-from django.conf import settings
-
-from sorl.thumbnail import delete as sorl_delete
 
 from .helpers import ImginError
 

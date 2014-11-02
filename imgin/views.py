@@ -10,31 +10,24 @@ import json
 from django.contrib import messages
 from django.http import HttpResponse
 from django.utils.text import slugify
-from django.views.generic import (
-    CreateView, DeleteView, ListView,
-    TemplateView, UpdateView, View
-)
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.generic import CreateView
+from django.views.generic import DeleteView
+from django.views.generic import ListView
+from django.views.generic import TemplateView
+from django.views.generic import UpdateView
+from django.views.generic import View
 
-from .forms import BaseImageCategoryForm, BaseImageSeriesForm
-from .models import (
-    BaseFrontpageImage, BaseImage, BaseImageCategory, BaseImageSeries
-)
+from cerebrum.mixins import DispatchProtectionMixin
+from cerebrum.mixins import CsrfExemptMixin
 
+from .forms import BaseImageCategoryForm
+from .forms import BaseImageSeriesForm
 
-class DispatchProtectionMixin(object):
-    @method_decorator(csrf_protect)
-    @method_decorator(never_cache)
-    def dispatch(self, *args, **kwargs):
-        return super(DispatchProtectionMixin, self).dispatch(*args, **kwargs)
+from .models import BaseFrontpageImage
+from .models import BaseImage
+from .models import BaseImageCategory
+from .models import BaseImageSeries
 
-
-class CSRFExemptMixin(object):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, *args, **kwargs):
-        return super(CSRFExemptMixin, self).dispatch(*args, **kwargs)
 
 # - Extendable Generic Views -------------------------------------------
 
@@ -204,7 +197,8 @@ class AJAXBaseImageListView(BaseView):
                 "image": image.url_l()
             } for image in self.model.objects.all().order_by("-created")
         ]
-        return HttpResponse(json.dumps(images), content_type="application/json")
+        return HttpResponse(
+            json.dumps(images), content_type="application/json")
 
 
 class AJAXBaseImageSortView(BaseView):
@@ -565,7 +559,7 @@ class BaseAJAXFroalaBrowserView(BaseListView):
                             content_type="application/json")
 
 
-class BaseAJAXFroalaUploadView(CSRFExemptMixin, BaseView):
+class BaseAJAXFroalaUploadView(CsrfExemptMixin, BaseView):
     model = BaseImage
 
     def post(self, request, *args, **kwargs):
