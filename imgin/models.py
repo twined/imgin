@@ -23,6 +23,7 @@ from .utils import get_image_size
 from .utils import get_thumbnail
 from .utils import parse_geometry
 from .utils import toint
+from .utils import lowercase_upload_handler
 
 
 class BaseFrontpageImage(models.Model):
@@ -117,7 +118,7 @@ class BaseImage(models.Model):
     IMGIN_KEY = 'base'
     IMGIN_CFG = imgin.settings.IMGIN_CONFIG[IMGIN_KEY]
 
-    image = models.ImageField(upload_to='images')
+    image = models.ImageField(upload_to=lowercase_upload_handler('images'))
     user = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

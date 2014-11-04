@@ -15,11 +15,31 @@ import logging
 from cStringIO import StringIO as BufferIO
 from PIL import Image, ImageFile
 
+from django.core.exceptions import ImproperlyConfigured
+
 from .helpers import ImginError
 
 
 logger = logging.getLogger(__name__)
 geometry_pat = re.compile(r'^(?P<x>\d+)?(?:x(?P<y>\d+))?$')
+
+
+def lowercase_upload_handler(upload_path):
+    """
+    Creates a method to be used as a value for Django models' upload_to
+    argument. The returned method will format a filename based on properties of
+    the model.
+    Usage:
+        thumbnail = models.ImageField(upload_to=format_filename('profile_images/{last_name}_{first_name}'))
+    """
+    def upload_to(self, filename):
+        try:
+            f = "%s" % os.path.join(upload_path, filename.lower())
+        except:
+            raise ImproperlyConfigured('You need to set upload_path')
+        return f
+
+    return upload_to
 
 
 def merge_settings(default_settings, user_settings):
