@@ -30,6 +30,8 @@ class GetResponsiveImage(Tag):
     )
 
     def render_tag(self, context, image, crop):
+        if not image:
+            return ''
         device = context['device']
         return image.responsive_url(device.matched)
 
