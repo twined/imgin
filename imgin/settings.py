@@ -11,6 +11,12 @@ from django.conf import settings
 
 from .utils import merge_settings
 
+IMGIN_OPTIMIZE_CONFIG = {
+    'png': '/usr/bin/optipng {filename}',
+    'gif': '/usr/bin/optipng {filename}',
+    'jpeg': '/usr/local/bin/jpegoptim {filename}'
+}
+
 IMGIN_CONFIG = {
     'base': {},
     'portfolio': {
@@ -64,4 +70,9 @@ IMGIN_CONFIG = {
 IMGIN_CONFIG = merge_settings(
     IMGIN_CONFIG,
     getattr(settings, 'IMGIN_CONFIG', {})
+)
+
+IMGIN_OPTIMIZE_CONFIG = merge_settings(
+    IMGIN_OPTIMIZE_CONFIG,
+    getattr(settings, 'IMGIN_OPTIMIZE_CONFIG', {})
 )

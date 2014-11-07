@@ -16,6 +16,7 @@ from cStringIO import StringIO as BufferIO
 from PIL import Image, ImageFile
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.text import slugify
 
 from .helpers import ImginError
 
@@ -26,15 +27,15 @@ geometry_pat = re.compile(r'^(?P<x>\d+)?(?:x(?P<y>\d+))?$')
 
 def lowercase_upload_handler(upload_path):
     """
-    Creates a method to be used as a value for Django models' upload_to
-    argument. The returned method will format a filename based on properties of
-    the model.
-    Usage:
-        thumbnail = models.ImageField(upload_to=format_filename('profile_images/{last_name}_{first_name}'))
+    Makes sure that uploaded file always is lowercased and slugified.
+    Usage: upload_to=lowercase_upload_handler('your/path')
     """
     def upload_to(self, filename):
         try:
-            f = "%s" % os.path.join(upload_path, filename.lower())
+            filename, extension = os.path.splitext(filename)
+            f = "%s%s" % (
+                os.path.join(upload_path,
+                             slugify(filename.lower())), extension.lower())
         except:
             raise ImproperlyConfigured('You need to set upload_path')
         return f
@@ -294,8 +295,8 @@ def parse_geometry(geometry, ratio=None):
         x = int(x)
     if y is not None:
         y = int(y)
-        # calculate x or y proportionally if not set but we need the image ratio
-    # for this
+    # calculate x or y proportionally if not set
+    # but we need the image ratio for this
     if ratio is not None:
         ratio = float(ratio)
         if x is None:
