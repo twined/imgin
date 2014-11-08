@@ -216,8 +216,7 @@ def scale(image, geometry, options):
 
 
 def get_image(source):
-    # use Image.open(source)
-    return
+    return Image.open(source)
 
 
 def get_image_size(image):

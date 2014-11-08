@@ -13,5 +13,11 @@ setup(
     license='Do what thou wilt.',
     description='Image manipulation for twined apps',
     long_description=open('README.md').read(),
+    install_requires=[
+        "mock-django",
+        "nose",
+        "Django==1.7.1",
+        "Pillow",
+    ],
     zip_safe=False,
 )

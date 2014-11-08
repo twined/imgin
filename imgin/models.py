@@ -13,6 +13,7 @@ from PIL import Image
 
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 
 import imgin.settings
@@ -157,14 +158,21 @@ class BaseImage(models.Model):
             if not media_queries:
                 continue
             for media_query in media_queries:
-                if len(set(media_query).intersection(matched_media_queries)) == len(media_query):
+                if len(set(media_query).intersection(
+                        matched_media_queries)) == len(media_query):
                     return self.get_url(size_map_key)
 
         return self.get_url()
 
     def get_url(self, size=None):
         if not size:
-            size = self.IMGIN_CFG['default_map']
+            try:
+                size = self.IMGIN_CFG['default_map']
+            except KeyError:
+                raise ImproperlyConfigured(
+                    "No `default_map` key set in IMGIN_CFG for %s" %
+                    self.__class__.__name__
+                )
         has_http = False
         path, filename = os.path.split(self.image.url)
         if path[0:7].lower() == 'http://':
