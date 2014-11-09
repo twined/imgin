@@ -19,6 +19,7 @@ from django.views.generic import View
 
 from cerebrum.mixins import DispatchProtectionMixin
 from cerebrum.mixins import CsrfExemptMixin
+from cerebrum.mixins import FormMessagesMixin
 
 from .forms import BaseImageCategoryForm
 from .forms import BaseImageSeriesForm
@@ -245,38 +246,29 @@ class BaseImageCategoryCreateView(BaseCreateView):
     """
     model = BaseImageCategory
     form_class = BaseImageCategoryForm
+    form_valid_message = "Lagret kategori"
+    form_invalid_message = "Rett feilene under"
     template_name = "imgin/admin/baseimagecategory_form.html"
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.slug = slugify(self.object.name)
-        self.object.user = self.request.user
-
-        messages.success(
-            self.request,
-            "Lagret kategori %s" % form.data['name'],
-            extra_tags='msg'
-        )
+        form.instance.slug = slugify(form.instance.name)
+        form.instance.user = self.request.user
         return super(BaseImageCategoryCreateView, self).form_valid(form)
 
 
-class BaseImageCategoryUpdateView(BaseUpdateView):
+class BaseImageCategoryUpdateView(FormMessagesMixin,
+                                  BaseUpdateView):
     """
     Displays form and handles updates of `ImageCategory`
     """
     model = BaseImageCategory
     form_class = BaseImageCategoryForm
+    form_valid_message = "Lagret oppdatert kategori"
+    form_invalid_message = "Rett feilene under"
     template_name = "imgin/admin/baseimagecategory_form.html"
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.user = self.request.user
-
-        messages.success(
-            self.request,
-            "Lagret endret kategori %s" % form.data['name'],
-            extra_tags='msg'
-        )
+        form.instance.user = self.request.user
         return super(BaseImageCategoryUpdateView, self).form_valid(form)
 
 
@@ -348,43 +340,46 @@ class BaseImageSeriesListView(BaseListView):
         return context
 
 
-class BaseImageSeriesCreateView(BaseCreateView):
+class BaseImageSeriesCreateView(FormMessagesMixin,
+                                BaseCreateView):
+
     model = BaseImageSeries
     form_class = BaseImageSeriesForm
+    form_valid_message = "Bildeserie opprettet"
+    form_invalid_message = "Rett feilene under"
     template_name = "imgin/admin/baseimageseries_form.html"
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.user = self.request.user
-        self.object.slug = slugify(self.object.name)
-        self.object.order = 0
-        messages.success(self.request, "Bildeserie opprettet",
-                         extra_tags='msg')
-
+        form.instance.user = self.request.user
+        form.instance.slug = slugify(form.instance.name)
+        form.instance.order = 0
         return super(BaseImageSeriesCreateView, self).form_valid(form)
 
 
-class BaseImageSeriesUpdateView(DispatchProtectionMixin, BaseUpdateView):
+class BaseImageSeriesUpdateView(FormMessagesMixin,
+                                DispatchProtectionMixin,
+                                BaseUpdateView):
+
     model = BaseImageSeries
     form_class = BaseImageSeriesForm
+    form_valid_message = "Bildeserie oppdatert"
+    form_invalid_message = "Rett feilene under"
     series_id_attr_name = 'image_series_id'
     template_name = "imgin/admin/baseimageseries_update.html"
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super(BaseImageSeriesUpdateView,
-                        self).get_context_data(**kwargs)
+        context = super(
+            BaseImageSeriesUpdateView, self
+        ).get_context_data(**kwargs)
+
         image_series = self.model.objects.get(
             pk=self.kwargs[self.series_id_attr_name])
         context['image_series'] = image_series
         return context
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.user = self.request.user
-        messages.success(self.request, "Bildeserie oppdatert",
-                         extra_tags='msg')
-
+        form.instance.user = self.request.user
         return super(BaseImageSeriesUpdateView, self).form_valid(form)
 
 
@@ -396,8 +391,9 @@ class BaseImageSeriesAddImagesView(DispatchProtectionMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super(BaseImageSeriesAddImagesView,
-                        self).get_context_data(**kwargs)
+        context = super(
+            BaseImageSeriesAddImagesView, self
+        ).get_context_data(**kwargs)
 
         image_series = self.model.objects.get(
             pk=self.kwargs[self.series_id_attr_name])

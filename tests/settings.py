@@ -14,6 +14,8 @@ COVERAGE_MODULE_EXCLUDES = ['tests$', 'settings$', 'urls$', 'locale$',
                             'common.views.test', '__init__', 'django',
                             'migrations']
 
+ROOT_URLCONF = 'tests.urls'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

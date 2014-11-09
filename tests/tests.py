@@ -1,3 +1,4 @@
+import coverage
 import os
 
 from django.test import TestCase
@@ -5,6 +6,7 @@ from django.test import SimpleTestCase
 from django.core.files import File
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django.test.client import RequestFactory
 
 
@@ -38,14 +40,14 @@ class ImginModelTests(SimpleTestCase):
     def tearDown(self):
         self.object.delete_thumbs()
 
-    '''
     def test_handle_upload(self):
         pass
         # create a request
-        #reqfactory = RequestFactory()
-        #request = reqfactory.factory.get(reverse('/'))
-        #self.object.handle_upload(reqfactory)
-    '''
+        '''
+        reqfactory = RequestFactory()
+        request = reqfactory.get(reverse('/'))
+        self.object.handle_upload(request)
+        '''
 
     def test_model_properties(self):
         self.assertTrue(hasattr(self.object, 'url_thumb'))
@@ -113,3 +115,6 @@ class ImginModelTests(SimpleTestCase):
             os.path.exists(os.path.join(self.dir, self.object.url_thumb)))
         self.assertTrue(
             os.path.exists(os.path.join(self.dir, self.object.image.url)))
+
+
+#  class ImginUtilsTests(SimpleTestCase):
