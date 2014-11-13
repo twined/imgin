@@ -15,6 +15,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
+from django.template.defaultfilters import slugify
 
 import imgin.settings
 
@@ -24,7 +25,18 @@ from .utils import get_image_size
 from .utils import get_thumbnail
 from .utils import parse_geometry
 from .utils import toint
-from .utils import lowercase_upload_handler
+
+
+def imgin_upload_handler(self, filename):
+    upload_path = 'images'
+    try:
+        filename, extension = os.path.splitext(filename)
+        f = "%s%s" % (
+            os.path.join(upload_path,
+                         slugify(filename.lower())), extension.lower())
+    except:
+        raise ImproperlyConfigured('You need to set upload_path')
+    return f
 
 
 class BaseFrontpageImage(models.Model):
@@ -119,7 +131,7 @@ class BaseImage(models.Model):
     IMGIN_KEY = 'base'
     IMGIN_CFG = imgin.settings.IMGIN_CONFIG[IMGIN_KEY]
 
-    image = models.ImageField(upload_to=lowercase_upload_handler('images'))
+    image = models.ImageField(upload_to=imgin_upload_handler)
     user = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
