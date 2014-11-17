@@ -99,6 +99,13 @@ class GetResponsiveImageObject(Tag):
             try:
                 image_object = getattr(image, mq_use)
             except AttributeError:
+                logger.error('GetResponsiveImageObject AttributeError',
+                             exc_info=True)
+                context[varname] = ''
+                return ''
+            except IOError:
+                logger.error('GetResponsiveImageObject IOError',
+                             exc_info=True)
                 context[varname] = ''
                 return ''
 
