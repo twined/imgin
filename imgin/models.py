@@ -119,6 +119,10 @@ class BaseImageSeries(models.Model):
     def get_update_url(self):
         raise NotImplemented()
 
+    def recreate_thumbs(self):
+        for im in self.related_images.all():
+            im.recreate_thumbs()
+
     def meta(self):
         return self._meta
 
@@ -210,6 +214,10 @@ class BaseImage(models.Model):
     @property
     def orientation(self):
         return 'portrait' if self.is_portrait else 'landscape'
+
+    def recreate_thumbs(self):
+        self.delete_thumbs()
+        self.create_thumbs()
 
     def delete_thumbs(self):
         """

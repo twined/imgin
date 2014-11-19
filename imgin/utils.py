@@ -121,6 +121,11 @@ def get_thumbnail(file_, geometry_string, **options):
     image_info = get_image_info(source_image)
     options['image_info'] = image_info
 
+    if thumbnail.mode is 'P':
+        if options['format'].lower() in ('jpeg', 'jpg',):
+            # image is 8 bit png or cmyk. convert to rgb since we want jpeg
+            thumbnail = thumbnail.convert("RGB")
+
     return create_thumbnail(file_, thumbnail, geometry_string, options)
 
 

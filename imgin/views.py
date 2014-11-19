@@ -9,6 +9,7 @@ import json
 
 from django.contrib import messages
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.utils.text import slugify
 from django.views.generic import CreateView
 from django.views.generic import DeleteView
@@ -323,6 +324,38 @@ class AJAXBaseImageCategorySortSeriesUpdate(CreateView):
         }), content_type="application/json")
 
 # - BaseImageSeries views --------------------------------------------
+
+
+class BaseImageSeriesRecreateThumbnailsView(View):
+    model = BaseImageSeries
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs.get('image_series_id')
+        if not id:
+            messages.error(
+                self.request,
+                "Ingen bildeserie ID oppgitt",
+                extra_tags='msg'
+            )
+            return redirect(self.request.META.get('HTTP_REFERER', '/admin'))
+
+        try:
+            image_series = self.model.objects.get(pk=id)
+        except self.model.DoesNotExist:
+            messages.error(
+                self.request,
+                "Fant ikke bildeserien",
+            )
+            return redirect(self.request.META.get('HTTP_REFERER', '/admin'))
+
+        image_series.recreate_thumbs()
+
+        messages.success(
+            self.request,
+            "Bildeserien er oppdatert med nye thumbnails",
+            extra_tags='msg'
+        )
+        return redirect(self.request.META.get('HTTP_REFERER', '/admin'))
 
 
 class BaseImageSeriesListView(BaseListView):
