@@ -297,6 +297,11 @@ class BaseImage(models.Model):
                     sizedir,
                     '%s.%s' % (self.filename_without_extension, 'png')
                 )
+                filename_optimized_png = os.path.join(
+                    self.get_uploaddir(),
+                    sizedir,
+                    '%s-optimized.%s' % (self.filename_without_extension, 'png')
+                )
                 filename_jpeg = os.path.join(
                     self.get_uploaddir(),
                     sizedir,
@@ -308,6 +313,8 @@ class BaseImage(models.Model):
                 os.remove(filename)
             if os.path.exists(filename_png):
                 os.remove(filename_png)
+            if os.path.exists(filename_optimized_png):
+                os.remove(filename_optimized_png)
             if os.path.exists(filename_jpeg):
                 os.remove(filename_jpeg)
 
