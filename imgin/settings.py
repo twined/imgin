@@ -12,7 +12,7 @@ from django.conf import settings
 from .utils import merge_settings
 
 IMGIN_OPTIMIZE_CONFIG = {
-    'png': '/usr/bin/optipng {filename}',
+    'png': '/usr/local/bin/pngquant --speed 1 --force --output "{new_filename}" -- "{filename}"',
     'gif': '/usr/bin/optipng {filename}',
     'jpeg': '/usr/local/bin/jpegoptim {filename}'
 }
@@ -20,6 +20,7 @@ IMGIN_OPTIMIZE_CONFIG = {
 IMGIN_CONFIG = {
     'base': {},
     'portfolio': {
+        'optimize_png': False,
         'allowed_exts': [".jpg", ".png", ".jpeg",
                          ".JPG", ".PNG", ".JPEG"],
         'belongs_to': 'ImageSeries',
