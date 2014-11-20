@@ -9,6 +9,7 @@ import json
 import os
 import uuid
 
+from math import log
 from PIL import Image
 
 from django.contrib.auth.models import User
@@ -20,6 +21,7 @@ from django.template.defaultfilters import slugify
 import imgin.settings
 
 from .managers import BaseFrontpageImageManager
+from .tasks import optimize_png
 from .utils import _mkdirs
 from .utils import get_image_size
 from .utils import get_thumbnail
@@ -142,6 +144,7 @@ class BaseImage(models.Model):
     order = models.IntegerField()
     width = models.IntegerField()
     height = models.IntegerField()
+    optimized = models.BooleanField(default=False)
 
     def __init__(self, *args, **kwargs):
         super(BaseImage, self).__init__(*args, **kwargs)
@@ -163,9 +166,31 @@ class BaseImage(models.Model):
     def filename_without_extension(self):
         return os.path.splitext(self.filename)[0]
 
-    @property
-    def format(self):
-        return os.path.splitext(self.filename)[1].lower()
+    def get_format(self):
+        patterns = (
+            (['.png'], 'png'),
+            (['.jpg', '.jpe', '.jpeg'], 'jpeg'),
+            (['.gif'], 'gif'),
+            (['.tif', '.tiff'], 'tiff'),
+            (['.bmp', '.dib'], 'bmp'),
+            (['.dcx'], 'dcx'),
+            (['.eps', 'ps'], 'eps'),
+            (['.im'], 'im'),
+            (['.pcd'], 'pcd'),
+            (['.pcx'], 'pcx'),
+            (['.pdf'], 'pdf'),
+            (['.pbm', '.pgm', '.ppm'], 'ppm'),
+            (['.psd'], 'psd'),
+            (['.xbm'], 'xbm'),
+            (['.xpm'], 'xpm')
+        )
+        if '.' not in self.filename:
+            return None
+        ext = os.path.splitext(self.filename)[1].lower()
+        for pattern in patterns:
+            if ext in pattern[0]:
+                return pattern[1]
+        return None
 
     def responsive_url(self, matched_media_queries):
         size_map = self.IMGIN_CFG['size_map']
@@ -189,21 +214,38 @@ class BaseImage(models.Model):
                     "No `default_map` key set in IMGIN_CFG for %s" %
                     self.__class__.__name__
                 )
+        format = self.IMGIN_CFG['size_map'][size]['format']
+
+        size = self.IMGIN_CFG['size_map'][size]['dir']
+
+        if format == 'original':
+            format = self.get_format()
+
         has_http = False
         path, filename = os.path.split(self.image.url)
         if path[0:7].lower() == 'http://':
             has_http = True
             path = path[6:]
 
-        filename, ext = os.path.splitext(filename)
+        only_filename, ext = os.path.splitext(filename)
         filename = '%s.%s' % (
-            filename,
-            self.IMGIN_CFG['size_map'][size]['format'].lower()
+            only_filename,
+            format.lower()
+        )
+        filename_optimized = '%s-optimized.%s' % (
+            only_filename,
+            format.lower()
         )
         # skip up a dir from o/ directory
         path = os.path.normpath(os.path.join(path, os.path.pardir))
         if has_http:
             path = 'http:/%s' % path
+
+        if self.optimized and self.get_format() is 'png':
+            if os.path.exists(os.path.join(settings.MEDIA_ROOT,
+                                           self.get_mediadir(),
+                                           size, filename_optimized)):
+                return os.path.join(path, size, filename_optimized.lower())
 
         return os.path.join(path, size, filename.lower())
 
@@ -214,6 +256,26 @@ class BaseImage(models.Model):
     @property
     def orientation(self):
         return 'portrait' if self.is_portrait else 'landscape'
+
+    @property
+    def entropy(self):
+        with open(str(self.image.file), 'rb') as f:
+            im = Image.open(f)
+            histogram = im.histogram()
+
+        log2 = lambda x: log(x)/log(2)
+
+        total = len(histogram)
+        counts = {}
+        for item in histogram:
+            counts.setdefault(item, 0)
+            counts[item] += 1
+
+        ent = 0
+        for i in counts:
+            p = float(counts[i])/total
+            ent -= p*log2(p)
+        return -ent*log2(1/ent)
 
     def recreate_thumbs(self):
         self.delete_thumbs()
@@ -297,9 +359,16 @@ class BaseImage(models.Model):
         for idx, data in size_map.items():
             self.create_thumb(idx)
 
+        if self.get_format() == 'png' and 'optimize_png' in self.IMGIN_CFG:
+            if self.IMGIN_CFG['optimize_png'] is True:
+                optimize_png.delay(self)
+
     def create_thumb(self, idx):
         size_map = self.IMGIN_CFG['size_map']
         size_string = self._get_size_string(size_map[idx])
+        format = size_map[idx]['format']
+        if format == 'original':
+            format = self.get_format()
 
         resized_src = get_thumbnail(
             self.image,
@@ -307,10 +376,10 @@ class BaseImage(models.Model):
             crop=size_map[idx]['crop'],
             upscale=True if idx is 't' else False,
             quality=size_map[idx]['quality'],
-            format=size_map[idx]['format'],
+            format=format,
         )
 
-        ext = size_map[idx]['format']
+        ext = format
 
         if ext[0] != '.':
             ext = '.%s' % ext
