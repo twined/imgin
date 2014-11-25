@@ -19,7 +19,12 @@ logger = logging.getLogger(__name__)
 def ratio(image):
     if not image:
         return 0
-    return float(image.height)/float(image.width)*100
+    try:
+        ratio = float(image.height)/float(image.width)*100
+    except IOError:
+        # Couldn't open file. Don't panic, just return 100
+        ratio = 100
+    return ratio
 
 
 class GetResponsiveImage(Tag):
