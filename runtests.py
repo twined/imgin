@@ -5,6 +5,10 @@ import re
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'tests.settings'
 
+import coverage
+cov = coverage.coverage()
+cov.start()
+
 import django
 from django.core.management import call_command
 
@@ -21,5 +25,8 @@ else:
 if hasattr(django, 'setup'):
     django.setup()
 call_command(
-    'test_coverage', names, failfast='-x' in sys.argv,
+    'test', names, failfast='-x' in sys.argv,
     verbosity=2 if '-v' in sys.argv else 1)
+
+cov.stop()
+cov.html_report(directory='tests/coverage_report')

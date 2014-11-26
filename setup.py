@@ -19,6 +19,11 @@ setup(
         "Django==1.7.1",
         "Pillow",
         "django_rq",
+        "django-redis-cache",
+        "django-crispy-forms",
+    ],
+    dependency_links=[
+        'https://github.com/twined/cerebrum/tarball/master#egg=cerebrum-dev',
     ],
     zip_safe=False,
 )

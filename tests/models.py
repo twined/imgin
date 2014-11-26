@@ -18,7 +18,10 @@ class PfImage(BaseImage):
                 'class_name': 'large',
                 'crop': '',
                 'quality': 100,
-                'format': 'jpg',
+                'format': 'original',
+                'media_queries': (
+                    ['retina'],
+                )
             },
             'medium': {
                 'landscape': 'x310',
@@ -27,7 +30,10 @@ class PfImage(BaseImage):
                 'class_name': 'medium',
                 'crop': '',
                 'quality': 100,
-                'format': 'jpg',
+                'format': 'original',
+                'media_queries': (
+                    ['desktop'],
+                )
             },
             'small': {
                 'landscape': 'x200',
@@ -36,7 +42,10 @@ class PfImage(BaseImage):
                 'class_name': 'small',
                 'crop': '',
                 'quality': 100,
-                'format': 'jpg',
+                'format': 'original',
+                'media_queries': (
+                    ['mobile'],
+                )
             },
             'thumb': {
                 'landscape': '140x140',
@@ -45,10 +54,16 @@ class PfImage(BaseImage):
                 'class_name': 'thumb',
                 'crop': 'center',
                 'quality': 100,
-                'format': 'jpg',
+                'format': 'original',
             },
         },
     }
+
+    def get_upload_url(self):
+        return '/'
+
+    def get_create_url(self):
+        return '/'
 
     class Meta:
         app_label = 'tests'

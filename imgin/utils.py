@@ -25,24 +25,6 @@ logger = logging.getLogger(__name__)
 geometry_pat = re.compile(r'^(?P<x>\d+)?(?:x(?P<y>\d+))?$')
 
 
-def lowercase_upload_handler(upload_path):
-    """
-    Makes sure that uploaded file always is lowercased and slugified.
-    Usage: upload_to=lowercase_upload_handler('your/path')
-    """
-    def upload_to(self, filename):
-        try:
-            filename, extension = os.path.splitext(filename)
-            f = "%s%s" % (
-                os.path.join(upload_path,
-                             slugify(filename.lower())), extension.lower())
-        except:
-            raise ImproperlyConfigured('You need to set upload_path')
-        return f
-
-    return upload_to
-
-
 def merge_settings(default_settings, user_settings):
     # store a copy of default_settings, but overwrite with
     # user_settings's values where applicable
@@ -88,6 +70,9 @@ def smart_crop(img, width, height, **options):
     top = (img.size[1] - crop_size[1])/2
     right = (img.size[0] + crop_size[0])/2
     bottom = (img.size[1] + crop_size[1])/2
+
+    if img.mode is 'P':
+        img = img.convert("RGB")
 
     cropped = img.crop((left, top, right, bottom))
 
@@ -204,6 +189,21 @@ def _calculate_scaling_factor(x_image, y_image, geometry, options):
     return max(factors) if crop else min(factors)
 
 
+def smart_scale(img, width, height, **options):
+    thumb = img.copy()
+    ratio = get_image_ratio(thumb, options)
+    if not height:
+        geometry_string = '%s' % width
+    else:
+        geometry_string = '%sx%s' % (width, height)
+    geometry = parse_geometry(geometry_string, ratio)
+    options['upscale'] = False
+    options['crop'] = False
+    image = scale(thumb, geometry, options)
+
+    return image
+
+
 def scale(image, geometry, options):
     """
     Scales image before returning it.
@@ -211,6 +211,9 @@ def scale(image, geometry, options):
     upscale = options['upscale']
     x_image, y_image = map(float, get_image_size(image))
     factor = _calculate_scaling_factor(x_image, y_image, geometry, options)
+
+    if image.mode is 'P':
+        image = image.convert("RGB")
 
     if factor < 1 or upscale:
         width = toint(x_image * factor)
@@ -304,7 +307,29 @@ def parse_geometry(geometry, ratio=None):
     if ratio is not None:
         ratio = float(ratio)
         if x is None:
-            x = toint(y * ratio)
+            x = (int(round(y * ratio)))
         elif y is None:
-            y = toint(x / ratio)
+            y = (int(round(x / ratio)))
     return x, y
+
+
+def is_transparent(image):
+    """
+    Check to see if an image is transparent.
+    """
+    if not isinstance(image, Image.Image):
+        # Can only deal with PIL images, fall back to the assumption that that
+        # it's not transparent.
+        return False
+    return (image.mode in ('RGBA', 'LA') or
+            (image.mode == 'P' and 'transparency' in image.info))
+
+
+def is_progressive(image):
+    """
+    Check to see if an image is progressive.
+    """
+    if not isinstance(image, Image.Image):
+        # Can only check PIL images for progressive encoding.
+        return False
+    return ('progressive' in image.info) or ('progression' in image.info)
