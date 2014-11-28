@@ -122,8 +122,9 @@ class BaseImageSeries(models.Model):
         raise NotImplemented()
 
     def recreate_thumbs(self):
-        for im in self.related_images.all():
-            im.recreate_thumbs()
+        if hasattr(self, 'related_images'):
+            for im in self.related_images.all():
+                im.recreate_thumbs()
 
     def meta(self):
         return self._meta
@@ -550,6 +551,57 @@ class BaseImage(models.Model):
         self.create_thumbs(**kwargs)
 
         return json.dumps({'link': self.url_l})
+
+    def handle_villain_upload(self, request, *args, **kwargs):
+        # read file info from stream
+        if 'file' not in request.FILES:
+            return json.dumps({
+                "error": "Ingen gjenkjennelig fil lastet opp."
+            })
+
+        file = request.FILES['file']
+        filesize = file.size
+        fileextension = file.name.split('.')[-1]
+        filename = "%s.%s" % (uuid.uuid4(), fileextension)
+
+        # check first for allowed file extensions
+        if not (self._get_ext_from_filename(filename) in
+                self.IMGIN_CFG['allowed_exts']):
+            return json.dumps({
+                "error": "Filen har ikke et gyldig filformat."
+            })
+
+        # check file size
+        if filesize > self.IMGIN_CFG['size_limit']:
+            return json.dumps({
+                "error": "Filen er for stor."
+            })
+
+        self.populate(request, **kwargs)
+
+        uploaddir = os.path.join(self.get_uploaddir(), 'o')
+        mediadir = os.path.join(self.get_mediadir(), 'o')
+
+        _mkdirs(uploaddir)
+
+        fd = open(os.path.join(uploaddir, filename), 'wb')
+        for chunk in file.chunks():
+            fd.write(chunk)
+        fd.close()
+
+        self.image = self.image.field.attr_class(
+            self, self.image.field,
+            os.path.join(mediadir, filename))
+
+        # get the WxH of original image
+        image_obj = Image.open(self.image)
+        (self.width, self.height) = \
+            get_image_size(image_obj)
+        self.save()
+
+        self.create_thumbs(**kwargs)
+
+        return True
 
     def _get_ext_from_filename(self, filename):
         import os

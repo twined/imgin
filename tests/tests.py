@@ -6,19 +6,27 @@ from django.core.files import File
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-# from django.test.client import RequestFactory
+from django.test.client import Client
 
 from mock_django.models import ModelMock
 from PIL import Image
-from django_rq import get_worker
 
 from imgin import utils
 from imgin.helpers import ImginError
 
-from .models import PfImage
+from .models import PfImage, PfSeries
 
 
-class ImginModelTests(SimpleTestCase):
+
+class TestcaseUserBackend(object):
+    def authenticate(self, testcase_user=None):
+        return testcase_user
+
+    def get_user(self, user_id):
+        return User.objects.get(pk=user_id)
+
+
+class ImginImageModelTests(SimpleTestCase):
     def setUp(self):
         self.dir = settings.MEDIA_ROOT
         self.object_jpeg = PfImage()
@@ -290,19 +298,15 @@ class ImginUtilsTests(SimpleTestCase):
 
 class ImginTasksTests(TestCase):
     def setUp(self):
-        from django.contrib.auth.models import User
-        from django.test.client import Client
-
-        # store the password to login later
-        password = 'mypassword'
-
-        self.user = User.objects.create_superuser('myuser', 'myemail@test.com',
-                                                  password)
         self.c = Client()
 
-        # You'll need to log him in before you can send requests
-        # through the client
-        self.c.login(username=self.user.username, password=password)
+        self.user = User.objects.create(
+            username='testuser', password='12345',
+            is_active=True, is_staff=True, is_superuser=True)
+        self.user.set_password('hello')
+        self.user.save()
+        login = self.c.login(testcase_user=self.user)
+        self.assertTrue(login)
 
         self.dir = settings.MEDIA_ROOT
         self.object_jpeg = PfImage()
@@ -374,19 +378,21 @@ class ImginTasksTests(TestCase):
 
 class ImginViewsTests(TestCase):
     def setUp(self):
-        from django.contrib.auth.models import User
-        from django.test.client import Client
-
-        # store the password to login later
-        password = 'mypassword'
-
-        self.user = User.objects.create_superuser('myuser', 'myemail@test.com',
-                                                  password)
         self.c = Client()
 
-        # You'll need to log him in before you can send requests
-        # through the client
-        self.c.login(username=self.user.username, password=password)
+        self.user = User.objects.create(
+            username='testuser', password='12345',
+            is_active=True, is_staff=True, is_superuser=True)
+        self.user.set_password('hello')
+        self.user.save()
+        login = self.c.login(testcase_user=self.user)
+        self.assertTrue(login)
+
+        # create imageseries
+        self.object_series = PfSeries()
+        self.object_series.user = self.user
+        self.object_series.order = 0
+        self.object_series.save()
 
         self.dir = settings.MEDIA_ROOT
         self.object_jpeg = PfImage()
@@ -404,6 +410,7 @@ class ImginViewsTests(TestCase):
 
         self.object_jpeg.user = self.user
         self.object_jpeg.order = 0
+        self.object_jpeg.series_id = 1
 
         self.object_jpeg.save()
 
@@ -421,6 +428,7 @@ class ImginViewsTests(TestCase):
 
         self.object_png.user = self.user
         self.object_png.order = 0
+        self.object_png.series_id = 1
 
         self.pil_png = Image.open(self.object_png.image.path)
 
@@ -433,7 +441,7 @@ class ImginViewsTests(TestCase):
         self.user.delete()
 
     def test_image_create_view(self):
-        response = self.c.get(reverse('image-create'))
+        response = self.c.get(reverse('image-create'), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['images']), 2)
 
@@ -441,3 +449,116 @@ class ImginViewsTests(TestCase):
         response = self.c.get(reverse('image-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['images']), 2)
+
+    # imageseries
+
+    def test_image_series_recreate_thumbnails_view(self):
+        response = self.c.get(reverse('series-recreate'), follow=True)
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Ingen bildeserie ID oppgitt')
+        self.assertEqual(response.status_code, 404)
+
+        response = self.c.get(
+            reverse('series-recreate', kwargs={'image_series_id': 1234}),
+            follow=True)
+        self.assertEqual(response.status_code, 404)
+
+        response = self.c.get(
+            reverse('series-recreate', kwargs={'image_series_id': 1}),
+            follow=True)
+
+    def test_image_series_list_view(self):
+        response = self.c.get(
+            reverse('series-list', kwargs={'pk': 1}),
+            follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            'imgin/admin/baseimageseries_list.html'
+        )
+        response = self.c.get(
+            reverse('series-list', kwargs={'pk': 1234}),
+            follow=True)
+        self.assertTemplateUsed(
+            response,
+            'imgin/admin/baseimageseries_list.html'
+        )
+        # self.assertEqual(response.status_code, 404)
+
+    def test_image_series_create_view(self):
+        response = self.c.get(
+            reverse('series-create'),
+            follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            'imgin/admin/baseimageseries_form.html'
+        )
+
+    def test_image_series_create_erroneus_post_view(self):
+        response = self.c.post(
+            reverse('series-create'),
+            follow=True)
+
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Rett feilene under')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            'imgin/admin/baseimageseries_form.html'
+        )
+
+    def test_image_series_create_post_view(self):
+        response = self.c.post(
+            reverse('series-create'),
+            {
+                'name': 'Test Series',
+                'slug': 'test-series',
+                'user': 1,
+                'order': 0,
+            },
+            follow=True)
+
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Bildeserie opprettet')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            'imgin/admin/baseimageseries_list.html'
+        )
+
+    def test_image_series_update_view(self):
+        response = self.c.get(
+            reverse('series-update', kwargs={'pk': 1}),
+            follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            'imgin/admin/baseimageseries_update.html'
+        )
+
+    def test_image_series_update_post_view(self):
+        response = self.c.post(
+            reverse('series-update', kwargs={'pk': 1}),
+            {
+                'name': 'Test Series!',
+                'slug': 'test-series',
+                'user': 1,
+                'order': 0,
+            },
+            follow=True)
+
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Bildeserie oppdatert')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            'imgin/admin/baseimageseries_list.html'
+        )

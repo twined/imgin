@@ -8,20 +8,23 @@ TEMPLATE_DIRS = [
     os.path.join(imgin_dir, 'imgin', 'templates').replace(' ', r'\ '),
 ]
 
-print TEMPLATE_DIRS
-
 MEDIA_ROOT = os.path.join(current_dir, 'media')
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.staticfiles',
+    'django.contrib.sessions',
     'django.contrib.contenttypes',
     'django_coverage',
+    'django_nose',
     'cerebrum',
     'crispy_forms',
     'tests',
 ]
 
 STATIC_URL = '/static/'
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_ARGS = ['--with-progressive', '--logging-clear-handlers']
 
 COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(current_dir, 'coverage_report')
 COVERAGE_CUSTOM_REPORTS = False
@@ -59,7 +62,20 @@ RQ_QUEUES = {
     }
 }
 
-MIDDLEWARE_CLASSES = []
+MIDDLEWARE_CLASSES = [
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'tests.tests.TestcaseUserBackend',
+]
+
+#LOGIN_URL = '/admin/login/'
+#LOGOUT_URL = '/admin/logout/'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 AUTH_PROFILE_MODULE = 'tests.UserProfile'
 

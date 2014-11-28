@@ -1,5 +1,51 @@
 import os
+
+from django.core.urlresolvers import reverse
+from django.db import models
 from imgin.models import BaseImage
+from imgin.models import BaseImageSeries
+
+
+class PfSeries(BaseImageSeries):
+    @staticmethod
+    def get_create_url():
+        return reverse(
+            'series-create'
+        )
+
+    def get_update_url(self):
+        return reverse(
+            'series-update',
+            kwargs={'pk': self.pk}
+        )
+
+    def get_addimages_url(self):
+        return reverse(
+            'series-addimages',
+            kwargs={'image_series_id': self.pk}
+        )
+
+    def get_upload_url(self):
+        return reverse(
+            'series-upload',
+            kwargs={'image_series_id': self.pk}
+        )
+
+    def get_absolute_url(self):
+        return reverse(
+            'series-list',
+            kwargs={
+                'pk': self.pk,
+            }
+        )
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Bildeserie'
+        verbose_name_plural = 'Bildeserier'
+        ordering = ['order', '-created']
 
 
 class PfImage(BaseImage):
@@ -58,6 +104,9 @@ class PfImage(BaseImage):
             },
         },
     }
+
+    series = models.ForeignKey(PfSeries, related_name='related_images',
+                               null=True, blank=True)
 
     def get_upload_url(self):
         return '/'
