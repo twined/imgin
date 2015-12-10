@@ -97,7 +97,7 @@ class BaseImageSeries(models.Model):
     A set of photos that belong together. I.E. a shoot for Vogue.
     '''
     name = models.CharField('Navn', max_length=255)
-    slug = models.CharField('URL', max_length=50)
+    slug = models.CharField('URL', max_length=255)
     credits = models.CharField('Krediteringer', blank=True, max_length=255)
     #  user = models.ForeignKey(User)
     user = models.ForeignKey(
