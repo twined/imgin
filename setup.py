@@ -14,7 +14,7 @@ setup(
     description='Image manipulation for Twined apps',
     long_description=open('README.md').read(),
     install_requires=[
-        "mock-django",
+        "mock-django==0.6.5",
         "nose",
         "Django==1.7.1",
         "Pillow==2.6.0",
