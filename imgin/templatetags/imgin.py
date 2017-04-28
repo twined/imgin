@@ -21,6 +21,7 @@ def ratio(image):
         return 0
     try:
         ratio = float(image.height)/float(image.width)*100
+        return round(ratio + 5 * 10**(-1 * (2 + 1)), 2)
     except IOError:
         # Couldn't open file. Don't panic, just return 100
         ratio = 100
